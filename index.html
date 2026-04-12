@@ -1,0 +1,119 @@
+﻿<!doctype html>
+<html lang="sw">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="E-Serikali Mtaa - Mfumo wa Huduma za Serikali za Mtaa Tanzania. Pata hati za uthibitisho, leseni, na huduma nyingine za serikali mtandaoni." />
+    <meta name="keywords" content="e-serikali, mtaa, tanzania, serikali, huduma, hati, leseni, uthibitisho" />
+    <meta name="author" content="E-Serikali Mtaa" />
+    
+    <!-- Theme color - supported by Chrome, Edge, Safari, but not Firefox -->
+    <!-- Alternative for older browsers and better compatibility -->
+    <meta name="msapplication-TileColor" content="#059669" />
+    <meta name="msapplication-navbutton-color" content="#059669" />
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="E-Serikali Mtaa - Huduma za Serikali za Mtaa" />
+    <meta property="og:description" content="Pata huduma za serikali za mtaa mtandaoni - hati, leseni, uthibitisho na zaidi." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:url" content="https://e-serikali-mtaa.go.tz" />
+    <meta property="og:site_name" content="E-Serikali Mtaa" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="E-Serikali Mtaa - Huduma za Serikali za Mtaa" />
+    <meta name="twitter:description" content="Pata huduma za serikali za mtaa mtandaoni" />
+    <meta name="twitter:image" content="/og-image.png" />
+    
+    <title>E-Serikali Mtaa - Huduma za Serikali za Mtaa Tanzania</title>
+    <link rel="icon" type="image/png" href="https://images.seeklogo.com/logo-png/31/1/coat-of-arms-of-tanzania-logo-png_seeklogo-311608.png" />
+    <link rel="apple-touch-icon" href="https://images.seeklogo.com/logo-png/31/1/coat-of-arms-of-tanzania-logo-png_seeklogo-311608.png" />
+    
+    <!-- Crypto polyfill for older browsers and extensions -->
+    <script>
+      // Polyfill for crypto.randomUUID()
+      (function() {
+        if (!window.crypto) {
+          window.crypto = {};
+        }
+        
+        if (!window.crypto.randomUUID) {
+          window.crypto.randomUUID = function() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+              const r = Math.random() * 16 | 0;
+              const v = c === 'x' ? r : (r & 0x3 | 0x8);
+              return v.toString(16);
+            });
+          };
+        }
+        
+        // Polyfill for WebCrypto API if needed for Supabase
+        if (!window.crypto.subtle && window.crypto.webkitSubtle) {
+          window.crypto.subtle = window.crypto.webkitSubtle;
+        }
+        
+        // Check if we're in development mode without using process.env
+        // This works in browser environment
+        const isDevelopment = window.location.hostname === 'localhost' || 
+                             window.location.hostname === '127.0.0.1' ||
+                             window.location.port === '5173' ||
+                             window.location.port === '3000';
+        
+        if (isDevelopment) {
+          console.log('âœ… Crypto polyfills loaded. randomUUID supported:', typeof window.crypto.randomUUID === 'function');
+        }
+      })();
+    </script>
+    
+    <script>
+      // Dynamic theme color for browsers that support it
+      (function() {
+        // Check if browser supports theme-color meta tag
+        const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeColorMeta && window.matchMedia('(display-mode: browser)').matches) {
+          // Only apply on supported browsers
+          const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+          if (!isFirefox) {
+            themeColorMeta.setAttribute('content', '#059669');
+          }
+        }
+        
+        // For Firefox, we can use a different approach (status bar color on Android)
+        if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+          // Firefox uses a different approach via CSS for PWA
+          const style = document.createElement('style');
+          style.textContent = `
+            @media (display-mode: standalone) {
+              body {
+                background-color: #059669;
+              }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      })();
+    </script>
+    
+    <style>
+      /* Ensure smooth scrolling and better UX */
+      html {
+        scroll-behavior: smooth;
+      }
+      
+      /* Fallback theme color for Firefox (via CSS) */
+      body {
+        background-color: #ffffff;
+      }
+      
+      /* Loading indicator */
+      #root {
+        min-height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,123 @@
+// src/hooks/useApplications.ts - FIXED VERSION
+import { useState, useEffect, useCallback } from 'react';
+import { supabase, Application, UserProfile } from '@/src/lib/supabase';
+import { HARDCODED_SERVICES } from '@/src/constants/services';
+
+// Helper to get service by ID from hardcoded services
+const getServiceById = (serviceId: string) => {
+  return HARDCODED_SERVICES.find(s => s.id === serviceId) || null;
+};
+
+export function useApplications(user: UserProfile | null) {
+  // ✅ ALL HOOKS AT THE TOP - Always called in same order
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [drafts, setDrafts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Memoize fetchApplications to prevent unnecessary re-renders
+  const fetchApplications = useCallback(async () => {
+    // ✅ Condition INSIDE the function, not before Hooks
+    if (!user || !user.id) {
+      setApplications([]);
+      setDrafts([]);
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const isConfigured = supabaseUrl && !supabaseUrl.includes('YOUR_SUPABASE_URL') && !supabaseUrl.includes('bqxevbmjqvogebmlbidx');
+
+    if (!isConfigured || (user.id && user.id.startsWith('demo-'))) {
+      // Demo mode
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const demoApps = JSON.parse(localStorage.getItem('demo_applications') || '[]');
+      // Filter for current user and add service data from hardcoded services
+      const userApps = demoApps
+        .filter((app: any) => app.user_id === user.id)
+        .map((app: any) => ({
+          ...app,
+          services: getServiceById(app.service_id) || { name: app.service_name || 'Service', fee: 0 },
+          users: user // Add user data for document generation
+        }));
+      setApplications(userApps);
+
+      // Fetch drafts from localStorage
+      const userDrafts = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(`draft_${user.id}_`)) {
+          try {
+            const draft = JSON.parse(localStorage.getItem(key)!);
+            userDrafts.push({
+              ...draft,
+              services: getServiceById(draft.service_id) || { name: draft.service_name || 'Service', fee: 0 },
+              users: user
+            });
+          } catch (err) {
+            console.error('Error parsing draft:', err);
+          }
+        }
+      }
+      setDrafts(userDrafts);
+      setLoading(false);
+      return;
+    }
+
+    console.log('Fetching applications for user:', user.id);
+    
+    const { data, error: fetchError } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    
+    console.log('Applications fetch result:', { data, error: fetchError });
+    
+    if (fetchError) {
+      console.error('Error fetching applications:', fetchError);
+      setError(fetchError.message);
+    }
+    
+    // Add service data from hardcoded services
+    if (data) {
+      const appsWithServices = data.map((app: any) => ({
+        ...app,
+        services: getServiceById(app.service_id) || { name: 'Service', fee: 0 },
+        users: user // Add user data for document generation
+      }));
+      setApplications(appsWithServices);
+    }
+
+    // For real users, drafts would be stored in database
+    setDrafts([]);
+    setLoading(false);
+  }, [user?.id]); // Only depend on user.id, not the whole user object
+
+  // ✅ useEffect always called, condition inside
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
+
+  // ✅ Helper to manually refresh
+  const refreshApplications = useCallback(() => {
+    fetchApplications();
+  }, [fetchApplications]);
+
+  // ✅ Helper to set applications directly
+  const setApplicationsDirectly = useCallback((apps: Application[]) => {
+    setApplications(apps);
+  }, []);
+
+  return { 
+    applications, 
+    drafts, 
+    loading, 
+    error,
+    fetchApplications, 
+    refreshApplications,
+    setApplications: setApplicationsDirectly 
+  };
+}

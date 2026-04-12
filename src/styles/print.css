@@ -1,0 +1,13 @@
+﻿/* Print styles for PDF preview */
+@media print {
+  .print-friendly {
+    box-shadow: none !important;
+    border: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+.document-preview {
+  font-family: Arial, sans-serif;
+}

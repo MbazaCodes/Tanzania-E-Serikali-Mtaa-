@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Environment files (handled by Vercel)
+.env
+.env.local
+.env.*.local
+
+# Editor directories
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+
+# Scripts
+scripts/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Tests
+coverage/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx

@@ -1,0 +1,276 @@
+import { Service } from '@/lib/supabase';
+
+export const TANZANIA_LOGO_URL = "/tz-coat-of-arms.png";
+
+export const HARDCODED_SERVICES: Service[] = [
+  {
+    id: "1",
+    name: "Utambulisho wa Mkazi",
+    name_en: "Resident Identity",
+    description: "Pata uthibitisho rasmi wa makazi yako kwenye mtaa wako.",
+    description_en: "Get official confirmation of your residence in your street.",
+    fee: 5000,
+    active: true,
+    form_schema: [
+      {"name": "section_header", "label": "TAARIFA ZA HALMASHAURI", "type": "header"},
+      {"name": "council", "label": "Halmashauri", "type": "select", "required": true, "options": [
+        {"label": "HALMASHAURI YA MANISPAA YA ARUSHA", "value": "ARUSHA"},
+        {"label": "HALMASHAURI YA MANISPAA YA KINONDONI", "value": "KINONDONI"},
+        {"label": "HALMASHAURI YA MANISPAA YA ILALA", "value": "ILALA"},
+        {"label": "HALMASHAURI YA MANISPAA YA TEMEKE", "value": "TEMEKE"},
+        {"label": "HALMASHAURI YA MANISPAA YA UBUNGO", "value": "UBUNGO"},
+        {"label": "HALMASHAURI YA MANISPAA YA KIGAMBONI", "value": "KIGAMBONI"},
+        {"label": "HALMASHAURI YA MANISPAA YA DODOMA", "value": "DODOMA"},
+        {"label": "HALMASHAURI YA MANISPAA YA MBEYA", "value": "MBEYA"},
+        {"label": "HALMASHAURI YA MANISPAA YA MWANZA", "value": "MWANZA"},
+        {"label": "HALMASHAURI YA MANISPAA YA MOROGORO", "value": "MOROGORO"},
+        {"label": "HALMASHAURI YA MANISPAA YA IRINGA", "value": "IRINGA"},
+        {"label": "HALMASHAURI YA MANISPAA YA TANGA", "value": "TANGA"},
+        {"label": "HALMASHAURI YA MANISPAA YA MOSHI", "value": "MOSHI"},
+        {"label": "NYINGINE", "value": "NYINGINE"}
+      ]},
+      {"name": "section_personal", "label": "TAARIFA BINAFSI (Zilizohakikiwa na NIDA)", "type": "header"},
+      {"name": "occupation", "label": "Kazi/Shughuli", "type": "text", "required": true},
+      {"name": "section_marital", "label": "TAARIFA ZA NDOA", "type": "header"},
+      {"name": "marital_status", "label": "Hali ya Ndoa", "type": "select", "options": [
+        {"label": "SIJAOA/SIJAOLEWA", "value": "SINGLE"},
+        {"label": "NIMEOA/NIMEOLEWA", "value": "MARRIED"},
+        {"label": "TALAKA", "value": "DIVORCED"},
+        {"label": "MJANE", "value": "WIDOWED"}
+      ], "required": true},
+      {"name": "section_spouse", "label": "TAARIFA ZA MKE/MUME (Jaza kama umeoa/umeolewa)", "type": "header", "showIf": {"field": "marital_status", "value": "MARRIED"}},
+      {"name": "spouse_1_name", "label": "Jina Kamili la Mke/Mume wa 1", "type": "text", "showIf": {"field": "marital_status", "value": "MARRIED"}},
+      {"name": "spouse_1_nida", "label": "NIDA/Kitambulisho cha Mke/Mume wa 1", "type": "text", "showIf": {"field": "marital_status", "value": "MARRIED"}},
+      {"name": "spouse_1_dob", "label": "Tarehe ya Kuzaliwa - Mke/Mume wa 1", "type": "date", "showIf": {"field": "marital_status", "value": "MARRIED"}},
+      {"name": "spouse_1_phone", "label": "Namba ya Simu - Mke/Mume wa 1", "type": "text", "showIf": {"field": "marital_status", "value": "MARRIED"}},
+      {"name": "spouse_1_occupation", "label": "Kazi/Shughuli - Mke/Mume wa 1", "type": "text", "showIf": {"field": "marital_status", "value": "MARRIED"}},
+      {"name": "section_children", "label": "TAARIFA ZA WATOTO", "type": "header"},
+      {"name": "has_children", "label": "Je, una watoto?", "type": "select", "options": [
+        {"label": "HAPANA", "value": "NO"},
+        {"label": "NDIYO", "value": "YES"}
+      ], "required": true},
+      {"name": "number_of_children", "label": "Idadi ya Watoto", "type": "number", "showIf": {"field": "has_children", "value": "YES"}},
+      {"name": "child_1_name", "label": "Jina Kamili la Mtoto wa 1", "type": "text", "showIf": {"field": "has_children", "value": "YES"}},
+      {"name": "child_1_dob", "label": "Tarehe ya Kuzaliwa - Mtoto wa 1", "type": "date", "showIf": {"field": "has_children", "value": "YES"}},
+      {"name": "additional_children", "label": "Watoto Wengine (Majina na Tarehe za Kuzaliwa)", "type": "textarea", "showIf": {"field": "has_children", "value": "YES"}},
+      {"name": "section_residence", "label": "TAARIFA ZA MAKAZI", "type": "header"},
+      {"name": "neighborhood", "label": "Kitongoji", "type": "text", "required": true},
+      {"name": "house_number", "label": "Nyumba No.", "type": "text"},
+      {"name": "housing_status", "label": "Hali ya Nyumba", "type": "select", "required": true, "options": [
+        {"label": "NIMEPANGA (Tenant)", "value": "RENTING"},
+        {"label": "NIMEJENGA/NINAMILIKI (Owner)", "value": "OWNER"},
+        {"label": "NINAISHI NA NDUGU (Living with relatives)", "value": "WITH_RELATIVES"}
+      ]},
+      {"name": "section_purpose", "label": "SABABU YA MAOMBI", "type": "header"},
+      {"name": "purpose", "label": "Sababu ya Maombi", "type": "select", "required": true, "options": [
+        {"label": "UTAMBULISHO WA MTAA", "value": "UTAMBULISHO"},
+        {"label": "KUSOMA", "value": "KUSOMA"},
+        {"label": "AJIRA", "value": "AJIRA"},
+        {"label": "BIASHARA", "value": "BIASHARA"},
+        {"label": "HUDUMA YA AFYA", "value": "HUDUMA_YA_AFYA"},
+        {"label": "HATI YA KUSAFIRI", "value": "HATI_YA_KUSAFIRI"},
+        {"label": "KUFUNGUA AKAUNTI YA BENKI", "value": "BENKI"},
+        {"label": "KUPATA HUDUMA ZA SERIKALI", "value": "SERIKALI"},
+        {"label": "KUOMBA LESENI", "value": "LESENI"},
+        {"label": "NYINGINEZO", "value": "NYINGINEZO"}
+      ]}
+    ],
+    diaspora_form_schema: null,
+    validity_months: 12,
+    document_template: {
+      "document_type": "UTAMBULISHO WA MKAZI",
+      "header": {
+        "country": "JAMHURI YA MUUNGANO WA TANZANIA",
+        "office": "OFISI YA RAIS - TAMISEMI",
+        "logo_url": "https://e-serikali-mtaa.vercel.app/tz-coat-of-arms.png"
+      },
+      "footer": "Cheti hiki ni rasmi na kinaweza kuthibitishwa kwa kuchanganua QR code. Hati hii ina muda wa miezi 12 tangu tarehe ya kutolewa."
+    },
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "2",
+    name: "Kibari cha Mazishi",
+    name_en: "Burial Permit",
+    description: "Kibali rasmi cha mazishi.",
+    description_en: "Official burial permit.",
+    fee: 2000,
+    active: true,
+    form_schema: [
+      {"name": "section_deceased", "label": "TAARIFA ZA MAREHEMU", "type": "header"},
+      {"name": "deceased_full_name", "label": "Jina Kamili la Marehemu", "type": "text", "required": true},
+      {"name": "date_of_death", "label": "Tarehe ya Kufariki", "type": "date", "required": true},
+      {"name": "burial_location", "label": "Mahala pa Kuzika", "type": "text", "required": true},
+      {"name": "family_representative", "label": "Mwakilishi wa Familia", "type": "text", "required": true},
+      {"name": "representative_phone", "label": "Simu ya Mwakilishi", "type": "tel", "required": true}
+    ],
+    diaspora_form_schema: null,
+    document_template: {
+      "document_type": "KIBARI CHA MAZISHI",
+      "header": {
+        "country": "JAMHURI YA MUUNGANO WA TANZANIA",
+        "office": "OFISI YA RAIS - TAMISEMI",
+        "logo_url": "https://e-serikali-mtaa.vercel.app/tz-coat-of-arms.png"
+      },
+      "subject": "YAH: TAARIFA YA MSIBA NA MAZISHI YA [DECEASED_FULL_NAME]",
+      "body_template": "Kwa huzuni kubwa, tunamtangaza kifo cha ndugu yetu mpenzi [DECEASED_FULL_NAME], ambaye ametufia tarehe [DATE_OF_DEATH]. Marehemu atazikwa katika [BURIAL_LOCATION].",
+      "footer": "Mwenyezi Mungu ailaze roho ya marehemu mahala pema peponi. Amina."
+    },
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "3",
+    name: "Kibari cha Sherehe",
+    name_en: "Celebration Permit",
+    description: "Vibali vya matukio na sherehe za mtaani.",
+    description_en: "Permits for events and street celebrations.",
+    fee: 10000,
+    active: true,
+    form_schema: [
+      {"name": "section_event", "label": "TAARIFA ZA SHEREHE", "type": "header"},
+      {"name": "event_type", "label": "Aina ya Sherehe", "type": "select", "required": true, "options": [
+        {"label": "SHEREHE YA HARUSI", "value": "HARUSI"},
+        {"label": "SHEREHE YA KUZALIWA", "value": "KUZALIWA"},
+        {"label": "SHEREHE YA GRADUATION", "value": "GRADUATION"},
+        {"label": "SHEREHE YA DINI", "value": "DINI"},
+        {"label": "NYINGINEZO", "value": "NYINGINEZO"}
+      ]},
+      {"name": "event_date", "label": "Tarehe ya Sherehe", "type": "date", "required": true},
+      {"name": "event_location", "label": "Mahali pa Sherehe", "type": "text", "required": true},
+      {"name": "expected_guests", "label": "Idadi ya Wageni", "type": "number"},
+      {"name": "event_duration", "label": "Muda wa Sherehe (masaa)", "type": "number", "required": true},
+      {"name": "organizer_phone", "label": "Namba ya Simu ya Mpangaji", "type": "tel", "required": true}
+    ],
+    diaspora_form_schema: null,
+    document_template: {
+      "document_type": "KIBARI CHA SHEREHE",
+      "header": {
+        "country": "JAMHURI YA MUUNGANO WA TANZANIA",
+        "office": "OFISI YA RAIS - TAMISEMI",
+        "logo_url": "https://e-serikali-mtaa.vercel.app/tz-coat-of-arms.png"
+      },
+      "subject": "YAH: KIBALI CHA KUFANYA SHEREHE YA [EVENT_TYPE]",
+      "body_template": "Ofisi ya Serikali ya Mtaa inatoa kibali kwa ndugu [FULL_NAME] kufanya sherehe ya [EVENT_TYPE] katika eneo la [EVENT_LOCATION] tarehe [EVENT_DATE].",
+      "footer": "Kibali hiki kinapaswa kuonyeshwa kwa mamlaka za usalama pindi kikihitajika."
+    },
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "4",
+    name: "Kibari cha Ujezi Mdogo",
+    name_en: "Minor Construction Permit",
+    description: "Kibali cha ujenzi mdogo kama uzio, barabara ndogo, au marekebisho ya nyumba.",
+    description_en: "Permit for minor construction such as fences, small roads, or house renovations.",
+    fee: 15000,
+    active: true,
+    form_schema: [
+      {"name": "section_construction", "label": "TAARIFA ZA UJENZI", "type": "header"},
+      {"name": "construction_type", "label": "Aina ya Ujenzi", "type": "select", "required": true, "options": [
+        {"label": "UZIO / UKUTA (Fence/Wall)", "value": "UZIO"},
+        {"label": "BARABAKA NDOGO (Small Road/Path)", "value": "BARABAKA"},
+        {"label": "MAREKEBISHO YA NYUMBA (House Renovation)", "value": "MAREKEBISHO"},
+        {"label": "CHUMBA CHA ZIADA (Extension Room)", "value": "CHUMBA"},
+        {"label": "BWAWA / KISIMA (Tank/Well)", "value": "BWAWA"},
+        {"label": "NYINGINEZO", "value": "NYINGINEZO"}
+      ]},
+      {"name": "construction_description", "label": "Maelezo ya Ujenzi", "type": "textarea", "required": true},
+      {"name": "construction_location", "label": "Mahali pa Ujenzi", "type": "text", "required": true},
+      {"name": "estimated_cost", "label": "Gharama Inayokadiriwa (TZS)", "type": "number", "required": true},
+      {"name": "start_date", "label": "Tarehe ya Kuanza Ujenzi", "type": "date", "required": true},
+      {"name": "end_date", "label": "Tarehe ya Kukamilika (Inayokadiriwa)", "type": "date", "required": true},
+      {"name": "section_contractor", "label": "TAARIFA ZA FUNDI/MKANDARASI", "type": "header"},
+      {"name": "contractor_name", "label": "Jina la Fundi/Mkandarasi", "type": "text", "required": true},
+      {"name": "contractor_phone", "label": "Simu ya Fundi/Mkandarasi", "type": "tel", "required": true},
+      {"name": "section_neighbors", "label": "IDHINI YA MAJIRANI", "type": "header"},
+      {"name": "neighbors_notified", "label": "Je, majirani wamearifiwa?", "type": "select", "required": true, "options": [
+        {"label": "NDIYO - Wamearifiwa", "value": "YES"},
+        {"label": "HAPANA - Hawajaarifiwa", "value": "NO"}
+      ]},
+      {"name": "neighbors_consent", "label": "Maelezo ya Idhini ya Majirani", "type": "textarea", "showIf": {"field": "neighbors_notified", "value": "YES"}}
+    ],
+    diaspora_form_schema: null,
+    document_template: {
+      "document_type": "KIBARI CHA UJEZI MDOGO",
+      "header": {
+        "country": "JAMHURI YA MUUNGANO WA TANZANIA",
+        "office": "OFISI YA RAIS - TAMISEMI",
+        "logo_url": "https://e-serikali-mtaa.vercel.app/tz-coat-of-arms.png"
+      },
+      "subject": "YAH: KIBALI CHA UJENZI MDOGO - [CONSTRUCTION_TYPE]",
+      "body_template": "Ofisi ya Serikali ya Mtaa inatoa kibali kwa ndugu [FULL_NAME] kufanya ujenzi mdogo wa [CONSTRUCTION_TYPE] katika eneo la [CONSTRUCTION_LOCATION]. Ujenzi utaanza tarehe [START_DATE] na kukamilika tarehe [END_DATE].",
+      "footer": "Kibali hiki kinapaswa kuonyeshwa pale kitakipohitajika na mamlaka husika."
+    },
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "5",
+    name: "Barua ya Utambulisho",
+    name_en: "Introduction Letter",
+    description: "Barua rasmi kwa ajili ya kazi, shule, na huduma nyingine.",
+    description_en: "Official letter for work, school, and other services.",
+    fee: 3000,
+    active: true,
+    form_schema: [
+      {"name": "section_mkazi", "label": "HATI YA MKAZI (Ikiwa Unacho)", "type": "header"},
+      {"name": "has_residence_certificate", "label": "Je, una Hati ya Mkazi?", "type": "select", "options": [
+        {"label": "NDIYO", "value": "YES"},
+        {"label": "HAPANA", "value": "NO"}
+      ]},
+      {"name": "mkazi_certificate_number", "label": "Namba ya Hati ya Mkazi", "type": "text", "showIf": {"field": "has_residence_certificate", "value": "YES"}, "placeholder": "Mfano: MKZ-2024-123456"},
+      {"name": "section_purpose", "label": "SABABU YA UTAMBULISHO", "type": "header"},
+      {"name": "purpose", "label": "Sababu ya Barua", "type": "select", "required": true, "options": [
+        {"label": "KUFUNGUA AKAUNTI YA BENKI", "value": "BENKI"},
+        {"label": "MAOMBI YA AJIRA", "value": "AJIRA"},
+        {"label": "MAOMBI YA CHUO/SHULE", "value": "CHUO"},
+        {"label": "KUPATA HUDUMA ZA AFYA", "value": "AFYA"},
+        {"label": "KUOMBA LESENI YA BIASHARA", "value": "LESENI_BIASHARA"},
+        {"label": "KUOMBA LESENI YA UDEREVA", "value": "LESENI_UDEREVA"},
+        {"label": "KUSAJILI SIMU/SIM CARD", "value": "SIMU"},
+        {"label": "KUOMBA PASSPORT/VISA", "value": "PASSPORT"},
+        {"label": "KUPATA HUDUMA ZA TRA (Kodi)", "value": "TRA"},
+        {"label": "KUPATA HUDUMA ZA BIMA", "value": "BIMA"},
+        {"label": "KUSAJILI MTOTO SHULENI", "value": "KUSAJILI_MTOTO"},
+        {"label": "KUOMBA MKOPO", "value": "MKOPO"},
+        {"label": "KUNUNUA ARDHI/NYUMBA", "value": "ARDHI"},
+        {"label": "KUPATA UMEME/MAJI (TANESCO/DAWASCO)", "value": "HUDUMA_UMEME_MAJI"},
+        {"label": "UTHIBITISHO KWA WAAJIRI", "value": "WAAJIRI"},
+        {"label": "MAOMBI YA SERIKALI", "value": "SERIKALI"},
+        {"label": "NYINGINEZO", "value": "NYINGINEZO"}
+      ]},
+      {"name": "purpose_details", "label": "Maelezo ya Sababu (kama ni NYINGINEZO)", "type": "textarea", "showIf": {"field": "purpose", "value": "NYINGINEZO"}},
+      {"name": "section_destination", "label": "TAASISI YA KWANZA (PRIMARY DESTINATION)", "type": "header"},
+      {"name": "institution_1_name", "label": "Jina la Taasisi", "type": "text", "required": true},
+      {"name": "institution_1_address", "label": "Anwani ya Taasisi", "type": "text"},
+      {"name": "institution_1_contact", "label": "Jina la Anayehusika (kama unamjua)", "type": "text"},
+      {"name": "section_extra", "label": "TAASISI ZA ZIADA (Extra TZS 1,000 kwa kila anwani)", "type": "header"},
+      {"name": "num_extra_addresses", "label": "Idadi ya Anwani za Ziada", "type": "select", "options": [
+        {"label": "HAKUNA (0)", "value": "0"},
+        {"label": "1 (Jumla TZS 4,000)", "value": "1"},
+        {"label": "2 (Jumla TZS 5,000)", "value": "2"},
+        {"label": "3 (Jumla TZS 6,000)", "value": "3"},
+        {"label": "4 (Jumla TZS 7,000)", "value": "4"},
+        {"label": "5 (Jumla TZS 8,000)", "value": "5"}
+      ]},
+      {"name": "institution_2_name", "label": "Taasisi ya 2 - Jina", "type": "text", "showIf": {"field": "num_extra_addresses", "values": ["1","2","3","4","5"]}},
+      {"name": "institution_2_address", "label": "Taasisi ya 2 - Anwani", "type": "text", "showIf": {"field": "num_extra_addresses", "values": ["1","2","3","4","5"]}},
+      {"name": "additional_info", "label": "Maelezo ya Ziada", "type": "textarea"}
+    ],
+    diaspora_form_schema: null,
+    extra_address_fee: 1000,
+    document_template: {
+      "document_type": "BARUA YA UTAMBULISHO",
+      "header": {
+        "country": "JAMHURI YA MUUNGANO WA TANZANIA",
+        "office": "OFISI YA RAIS - TAMISEMI",
+        "logo_url": "https://e-serikali-mtaa.vercel.app/tz-coat-of-arms.png"
+      },
+      "subject": "YAH: UTAMBULISHO WA NDUGU [FULL_NAME]",
+      "body_template": "Ofisi ya Serikali ya Mtaa inamtambulisha ndugu [FULL_NAME] kuwa ni mkazi halali wa mtaa huu. Barua hii imetolewa kwa ajili ya [PURPOSE] katika taasisi ya [INSTITUTION_NAME].",
+      "footer": "Barua hii ni ya matumizi maalumu kwa taasisi iliyoainishwa hapo juu pekee.",
+      "multi_address_note": "Barua tofauti zitatayarishwa kwa kila taasisi iliyoainishwa."
+    },
+    created_at: new Date().toISOString()
+  }
+];
+
+export const INITIAL_SERVICES = HARDCODED_SERVICES;
