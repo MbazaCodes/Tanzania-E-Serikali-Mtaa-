@@ -327,9 +327,18 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[Signup] Submit clicked. Form data:', {
+      firstName: regForm.firstName, lastName: regForm.lastName,
+      email: regForm.email, phone: regForm.phone,
+      hasNida: regForm.hasNida, nationality: regForm.nationality,
+      dateOfBirth: regForm.dateOfBirth, region: regForm.region
+    });
 
     if (!regForm.firstName.trim() || !regForm.lastName.trim()) {
-      showToast(lang === 'sw' ? "Tafadhali ingiza jina la kwanza na la mwisho" : "Please enter your first and last name", 'error');
+      const msg = lang === 'sw' ? "Tafadhali ingiza jina la kwanza na la mwisho" : "Please enter your first and last name";
+      console.error('[Signup] BLOCKED: names empty', { firstName: regForm.firstName, lastName: regForm.lastName });
+      showToast(msg, 'error');
+      setRegStep(1); // Send user back to Step 1 to fill names
       return;
     }
     
