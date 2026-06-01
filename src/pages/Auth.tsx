@@ -152,8 +152,16 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       if (error) {
         console.error('Supabase auth error:', (error as { message?: string; status?: number }).message, (error as { status?: number }).status);
         // 404/503/0 = project paused or infrastructure down
-        if (error.status === 404 || error.status === 503 || error.status === 0) {
+        if (error.status === 503 || error.status === 0) {
           throw unreachableError;
+        }
+        // 401 means wrong API key — show a clearer message
+        if (error.status === 401) {
+          throw new Error(
+            lang === 'sw'
+              ? 'Hitilafu ya usanidi: API key si sahihi. Angalia faili yako ya .env.'
+              : 'Configuration error: Invalid API key. Check your .env file.'
+          );
         }
         if ((error.message ?? '').includes('Email not confirmed')) {
           throw new Error(lang === 'sw' ? 'Barua pepe yako bado haijathibitishwa. Tafadhali kagua barua pepe yako.' : 'Your email is not confirmed yet. Please check your inbox.');
@@ -205,25 +213,28 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
         })();
 
         // Do not block login UX on profile refresh.
-        fetchUserProfile(data.user.id).catch((refreshError) => {
-        });
+        // Non-blocking profile refresh — fully silent, never throws
+        fetchUserProfile(data.user.id).catch(() => {});
       }
 
       onClose();
     } catch (err: unknown) {
       const _e = err as { message?: string };
       console.error('Login error:', err);
-      const isNetworkError = (_e as { name?: string }).name === 'TypeError' || _e.message?.includes('Failed to fetch') || _e.message?.includes('NetworkError');
       const isTimeout = !!(err as any).__isTimeout;
-      if (isNetworkError || isTimeout) {
+      const isNetworkError = isTimeout
+        || _e.message?.includes('Failed to fetch')
+        || _e.message?.includes('NetworkError')
+        || _e.message?.includes('ERR_NAME_NOT_RESOLVED');
+      if (isNetworkError) {
         showToast(
           lang === 'sw'
-            ? 'Seva ya Supabase haipatikani. Mradi wako unaweza kuwa umesimamishwa — tembelea dashibodi ya Supabase kuuanzisha tena, au angalia muunganisho wa intaneti yako.'
-            : 'Cannot reach Supabase server. Your project may be paused — visit app.supabase.com to resume it, or check your internet connection.',
+            ? 'Seva ya Supabase haipatikani. Angalia muunganisho wa intaneti yako au uanzishe tena mradi wako kwenye app.supabase.com.'
+            : 'Cannot reach Supabase. Check your internet connection or resume your project at app.supabase.com.',
           'error'
         );
       } else {
-        showToast(_e.message ?? 'Login failed. Please try again.', 'error');
+        showToast(_e.message ?? (lang === 'sw' ? 'Imeshindwa. Jaribu tena.' : 'Login failed. Please try again.'), 'error');
       }
     } finally {
       setLoading(false);
