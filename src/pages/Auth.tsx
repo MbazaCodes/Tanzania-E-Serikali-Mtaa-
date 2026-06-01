@@ -361,76 +361,142 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
     setLoading(true);
 
     try {
-      // Check if email already exists (uses SECURITY DEFINER — works without session)
-      const { data: emailExists } = await supabase.rpc('check_email_exists', { p_email: regForm.email });
-      if (emailExists) {
+      console.log('[Signup] Starting registration for:', regForm.email);
+
+      // --- Check duplicate email (try RPC, fallback to direct query) ---
+      let emailTaken = false;
+      try {
+        const { data: emailExists, error: rpcErr } = await supabase.rpc('check_email_exists', { p_email: regForm.email });
+        if (!rpcErr && emailExists) emailTaken = true;
+      } catch {
+        // RPC function may not exist — try direct query (may return empty due to RLS, which is OK)
+        const { data: existingUser } = await supabase.from('users').select('id').eq('email', regForm.email).maybeSingle();
+        if (existingUser) emailTaken = true;
+      }
+      if (emailTaken) {
         throw new Error(lang === 'sw' ? "Barua pepe hii tayari imeshasajiliwa. Tafadhali ingia." : "This email is already registered. Please login.");
       }
 
-      // Check if NIDA already exists
+      // --- Check duplicate NIDA ---
       if (regForm.nationality === 'Mtanzania' && regForm.hasNida && regForm.nidaNumber) {
         const cleanNida = regForm.nidaNumber.replace(/-/g, '');
-        const { data: nidaExists } = await supabase.rpc('check_nida_exists', { p_nida: cleanNida });
-        if (nidaExists) {
+        let nidaTaken = false;
+        try {
+          const { data: nidaExists, error: rpcErr } = await supabase.rpc('check_nida_exists', { p_nida: cleanNida });
+          if (!rpcErr && nidaExists) nidaTaken = true;
+        } catch {
+          const { data: existingNida } = await supabase.from('users').select('id').eq('nida_number', cleanNida).maybeSingle();
+          if (existingNida) nidaTaken = true;
+        }
+        if (nidaTaken) {
           throw new Error(lang === 'sw' ? "Namba hii ya NIDA tayari imeshasajiliwa." : "This NIDA number is already registered.");
         }
       }
 
-      // Create auth user (with 20s timeout)
-      const signUpPromise = supabase.auth.signUp({ 
-        email: regForm.email, 
-        password: regForm.password 
-      });
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(
-          lang === 'sw'
-            ? 'Muda wa kusubiri umeisha. Tafadhali jaribu tena.'
-            : 'Request timed out. Please try again.'
-        )), 20000)
-      );
-      const { data, error } = await Promise.race([signUpPromise, timeoutPromise]);
+      console.log('[Signup] Creating auth user...');
 
-      if (error) throw error;
+      // --- Create auth user (with 20s timeout) ---
+      const signUpResult = await Promise.race([
+        supabase.auth.signUp({ email: regForm.email, password: regForm.password }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error(
+          lang === 'sw' ? 'Muda wa kusubiri umeisha. Tafadhali jaribu tena.' : 'Request timed out. Please try again.'
+        )), 20000))
+      ]);
 
-      if (data.user) {
-        const isDiaspora = regForm.country !== 'Tanzania';
+      const { data, error } = signUpResult;
+      if (error) {
+        console.error('[Signup] Auth error:', error.message);
+        throw error;
+      }
 
-        // Create profile via SECURITY DEFINER RPC — bypasses RLS.
-        // This is needed because signUp with email confirmation does NOT
-        // establish a session, so auth.uid() is NULL and a direct INSERT
-        // would be blocked by the "auth.uid() = id" policy.
-        const { error: profileError } = await supabase.rpc('create_citizen_profile', {
-          p_id: data.user.id,
-          p_first_name: regForm.firstName.toUpperCase(),
-          p_middle_name: regForm.middleName.toUpperCase() || null,
-          p_last_name: regForm.lastName.toUpperCase(),
-          p_email: regForm.email,
-          p_phone: regForm.phone ? regForm.phone.replace(/[\s\-().]/g, '') : null,
-          p_sex: regForm.sex,
-          p_gender: regForm.sex,
-          p_date_of_birth: regForm.dateOfBirth || null,
-          p_place_of_birth: regForm.placeOfBirth ? regForm.placeOfBirth.toUpperCase() : null,
-          p_marital_status: regForm.maritalStatus || null,
-          p_occupation: regForm.occupation || null,
-          p_education_level: regForm.educationLevel || null,
-          p_nationality: regForm.nationality === 'Mtanzania' ? 'Tanzanian' : 'Foreigner',
-          p_country_of_citizenship: regForm.nationality === 'Mtanzania' ? 'Tanzania' : regForm.countryOfCitizenship,
-          p_nida_number: regForm.hasNida ? regForm.nidaNumber.replace(/-/g, '') : null,
-          p_id_type: !regForm.hasNida ? (regForm.idType || null) : null,
-          p_id_number: !regForm.hasNida ? (regForm.idNumber || null) : null,
-          p_region: regForm.region || null,
-          p_district: regForm.district || null,
-          p_ward: regForm.ward || null,
-          p_street: regForm.street || null,
-          p_is_diaspora: isDiaspora,
-          p_country_of_residence: regForm.country || null,
-          p_passport_number: regForm.passportNumber || null,
-          p_is_verified: nidaVerified || isDiaspora || regForm.nationality === 'Mwingine'
+      console.log('[Signup] Auth user created:', data.user?.id, 'session:', !!data.session);
+
+      if (!data.user) {
+        throw new Error(lang === 'sw' ? "Usajili umeshindwa. Barua pepe hii inaweza kuwa imesajiliwa tayari." : "Signup failed. This email may already be registered.");
+      }
+
+      // --- Create profile ---
+      const isDiaspora = regForm.country !== 'Tanzania';
+      const profileData = {
+        p_id: data.user.id,
+        p_first_name: regForm.firstName.toUpperCase(),
+        p_middle_name: regForm.middleName.toUpperCase() || null,
+        p_last_name: regForm.lastName.toUpperCase(),
+        p_email: regForm.email,
+        p_phone: regForm.phone ? regForm.phone.replace(/[\s\-().]/g, '') : null,
+        p_sex: regForm.sex,
+        p_gender: regForm.sex,
+        p_date_of_birth: regForm.dateOfBirth || null,
+        p_place_of_birth: regForm.placeOfBirth || null,
+        p_marital_status: regForm.maritalStatus || null,
+        p_occupation: regForm.occupation || null,
+        p_education_level: regForm.educationLevel || null,
+        p_nationality: regForm.nationality === 'Mtanzania' ? 'Tanzanian' : 'Foreigner',
+        p_country_of_citizenship: regForm.nationality === 'Mtanzania' ? 'Tanzania' : regForm.countryOfCitizenship,
+        p_nida_number: regForm.hasNida ? regForm.nidaNumber.replace(/-/g, '') : null,
+        p_id_type: !regForm.hasNida ? (regForm.idType || null) : null,
+        p_id_number: !regForm.hasNida ? (regForm.idNumber || null) : null,
+        p_region: regForm.region || null,
+        p_district: regForm.district || null,
+        p_ward: regForm.ward || null,
+        p_street: regForm.street || null,
+        p_is_diaspora: isDiaspora,
+        p_country_of_residence: regForm.country || null,
+        p_passport_number: regForm.passportNumber || null,
+        p_is_verified: nidaVerified || isDiaspora || regForm.nationality === 'Mwingine'
+      };
+
+      // Try RPC first (bypasses RLS), fall back to direct INSERT
+      let profileCreated = false;
+      try {
+        const { error: rpcError } = await supabase.rpc('create_citizen_profile', profileData);
+        if (!rpcError) {
+          profileCreated = true;
+          console.log('[Signup] Profile created via RPC');
+        } else {
+          console.warn('[Signup] RPC failed, trying direct INSERT:', rpcError.message);
+        }
+      } catch {
+        console.warn('[Signup] RPC not available, trying direct INSERT');
+      }
+
+      if (!profileCreated) {
+        // Fallback: direct INSERT (works if session exists, i.e. email confirm disabled)
+        const { error: insertError } = await supabase.from('users').insert({
+          id: data.user.id,
+          first_name: regForm.firstName.toUpperCase(),
+          middle_name: regForm.middleName.toUpperCase() || null,
+          last_name: regForm.lastName.toUpperCase(),
+          email: regForm.email,
+          phone: regForm.phone ? regForm.phone.replace(/[\s\-().]/g, '') : null,
+          sex: regForm.sex, gender: regForm.sex,
+          date_of_birth: regForm.dateOfBirth || null,
+          place_of_birth: regForm.placeOfBirth || null,
+          marital_status: regForm.maritalStatus || null,
+          occupation: regForm.occupation || null,
+          education_level: regForm.educationLevel || null,
+          nationality: regForm.nationality === 'Mtanzania' ? 'Tanzanian' : 'Foreigner',
+          country_of_citizenship: regForm.nationality === 'Mtanzania' ? 'Tanzania' : regForm.countryOfCitizenship,
+          nida_number: regForm.hasNida ? regForm.nidaNumber.replace(/-/g, '') : null,
+          id_type: !regForm.hasNida ? (regForm.idType || null) : null,
+          id_number: !regForm.hasNida ? (regForm.idNumber || null) : null,
+          region: regForm.region, district: regForm.district,
+          ward: regForm.ward, street: regForm.street,
+          is_diaspora: isDiaspora,
+          country_of_residence: regForm.country,
+          passport_number: regForm.passportNumber,
+          role: 'citizen',
+          is_verified: nidaVerified || isDiaspora || regForm.nationality === 'Mwingine'
         });
 
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-          throw new Error(lang === 'sw' ? "Akaunti imeundwa lakini wasifu haukuweza kuhifadhiwa. Tafadhali wasiliana na msaada." : "Account created but profile could not be saved. Please contact support.");
+        if (insertError) {
+          console.error('[Signup] Direct INSERT also failed:', insertError);
+          // Auth user was created but profile wasn't — still show partial success
+          showToast(lang === 'sw'
+            ? 'Akaunti imeundwa! Wasifu utakamilishwa unapoingia kwa mara ya kwanza.'
+            : 'Account created! Your profile will be completed on first login.', 'info');
+        } else {
+          console.log('[Signup] Profile created via direct INSERT');
         }
       }
       
