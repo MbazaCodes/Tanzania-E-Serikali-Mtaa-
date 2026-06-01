@@ -71,6 +71,12 @@ interface DashboardStats {
   activeSessions: number;
   apiCalls: number;
   averageResponseTime: number;
+
+  // Month-over-month trends (real, calculated %)
+  citizensTrend: number;
+  staffTrend: number;
+  applicationsTrend: number;
+  revenueTrend: number;
 }
 
 interface ActivityItem {
@@ -124,6 +130,11 @@ const INITIAL_STATS: DashboardStats = {
   activeSessions: 0,
   apiCalls: 0,
   averageResponseTime: 0,
+
+  citizensTrend: 0,
+  staffTrend: 0,
+  applicationsTrend: 0,
+  revenueTrend: 0,
 };
 
 export function AdminDashboard({ setView }: { setView?: (view: string) => void }) {
@@ -178,6 +189,7 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
     try {
 
       // Fetch real data from Supabase
+      const queryStart = performance.now();
       const [
         usersCount,
         citizensCount,
@@ -201,7 +213,11 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
         districtsCount,
         wardsCount,
         streetsCount,
-        activeSessions
+        activeSessions,
+        prevCitizensCount,
+        prevStaffCount,
+        prevApplicationsCount,
+        prevMonthRevenue
       ] = await Promise.all([
         supabase.from('users').select('*', { count: 'exact', head: true }),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'citizen'),
@@ -225,7 +241,25 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
         supabase.from('locations').select('*', { count: 'exact', head: true }).eq('level', 'district'),
         supabase.from('locations').select('*', { count: 'exact', head: true }).eq('level', 'ward'),
         supabase.from('locations').select('*', { count: 'exact', head: true }).eq('level', 'street'),
-        supabase.from('sessions').select('*', { count: 'exact', head: true }).eq('active', true)
+        supabase.from('sessions').select('*', { count: 'exact', head: true }).eq('active', true),
+
+        // --- Previous-period baselines for real trend calculation ---
+        // Citizens created up to 30 days ago (baseline for citizens trend)
+        supabase.from('users').select('*', { count: 'exact', head: true })
+          .eq('role', 'citizen')
+          .lte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        // Staff created up to 30 days ago
+        supabase.from('users').select('*', { count: 'exact', head: true })
+          .eq('role', 'staff')
+          .lte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        // Applications created up to 30 days ago
+        supabase.from('applications').select('*', { count: 'exact', head: true })
+          .lte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+        // Revenue from applications in the 30–60 day window (previous month)
+        supabase.from('applications').select('form_data, service_id')
+          .in('status', ['paid', 'issued', 'verified', 'approved'])
+          .gte('created_at', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString())
+          .lt('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
       ]);
 
       // Log results for debugging
@@ -256,11 +290,32 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
         }, 0);
       };
 
+      // Measured round-trip time of the dashboard data load
+      const queryMs = Math.round(performance.now() - queryStart);
+
       // Calculate totals from applications
       const totalRevenue = calculateRevenueFromApps(revenueTotal.data);
       const todayRev = calculateRevenueFromApps(revenueToday.data);
       const monthRev = calculateRevenueFromApps(revenueMonth.data);
       const pendingPay = calculateRevenueFromApps(pendingPayments.data);
+
+      // --- Real month-over-month trend calculation ---
+      // % change = (current - baseline) / baseline * 100
+      // When baseline is 0: show +100% if there's any current value, else 0%.
+      const calcTrend = (current: number, baseline: number): number => {
+        if (baseline <= 0) return current > 0 ? 100 : 0;
+        return Math.round(((current - baseline) / baseline) * 1000) / 10; // 1 decimal
+      };
+
+      const citizensNow = citizensCount.count || 0;
+      const staffNow = staffCount.count || 0;
+      const appsNow = applicationsCount.count || 0;
+      const prevMonthRev = calculateRevenueFromApps(prevMonthRevenue.data);
+
+      const citizensTrend = calcTrend(citizensNow, prevCitizensCount.count || 0);
+      const staffTrend = calcTrend(staffNow, prevStaffCount.count || 0);
+      const applicationsTrend = calcTrend(appsNow, prevApplicationsCount.count || 0);
+      const revenueTrend = calcTrend(monthRev, prevMonthRev);
 
       const newStats: DashboardStats = {
         totalUsers: usersCount.count || 0,
@@ -291,10 +346,15 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
         totalWards: wardsCount.count || 0,
         totalStreets: streetsCount.count || 0,
         
-        systemUptime: 99.98,
+        systemUptime: 99.9,            // Supabase platform SLA (managed infra)
         activeSessions: activeSessions.count || 0,
-        apiCalls: 1250000,
-        averageResponseTime: 245,
+        apiCalls: appsNow + citizensNow + staffNow,  // real total records touched
+        averageResponseTime: queryMs,  // measured round-trip of this dashboard load
+
+        citizensTrend,
+        staffTrend,
+        applicationsTrend,
+        revenueTrend,
       };
       setStats(newStats);
       
@@ -308,34 +368,7 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
         'error'
       );
       // Initialize with zeros on error
-      setStats({
-        totalUsers: 0,
-        totalCitizens: 0,
-        totalStaff: 0,
-        totalAdmins: 0,
-        verifiedUsers: 0,
-        pendingVerification: 0,
-        totalApplications: 0,
-        approvedApplications: 0,
-        pendingApplications: 0,
-        rejectedApplications: 0,
-        inProgressApplications: 0,
-        totalRevenue: 0,
-        todayRevenue: 0,
-        monthlyRevenue: 0,
-        pendingPayments: 0,
-        totalServices: 0,
-        activeServices: 0,
-        totalCategories: 0,
-        totalRegions: 0,
-        totalDistricts: 0,
-        totalWards: 0,
-        totalStreets: 0,
-        systemUptime: 0,
-        activeSessions: 0,
-        apiCalls: 0,
-        averageResponseTime: 0
-      });
+      setStats(INITIAL_STATS);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -528,28 +561,36 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
               icon={<Users className="text-blue-500" />} 
               label={lang === 'sw' ? "Wananchi" : "Citizens"} 
               value={stats.totalCitizens.toLocaleString()}
-              trend={+12.5}
-              description={lang === 'sw' ? '+12.5% kutoka mwezi uliopita' : '+12.5% from last month'}
+              trend={stats.citizensTrend}
+              description={
+                lang === 'sw'
+                  ? `${stats.citizensTrend >= 0 ? '+' : ''}${stats.citizensTrend}% kutoka mwezi uliopita`
+                  : `${stats.citizensTrend >= 0 ? '+' : ''}${stats.citizensTrend}% from last month`
+              }
             />
             <StatCard 
               icon={<Shield className="text-purple-500" />} 
               label={lang === 'sw' ? "Watumishi" : "Staff"} 
               value={stats.totalStaff.toLocaleString()}
-              trend={+5.2}
-              description={lang === 'sw' ? '+5.2% kutoka mwezi uliopita' : '+5.2% from last month'}
+              trend={stats.staffTrend}
+              description={
+                lang === 'sw'
+                  ? `${stats.staffTrend >= 0 ? '+' : ''}${stats.staffTrend}% kutoka mwezi uliopita`
+                  : `${stats.staffTrend >= 0 ? '+' : ''}${stats.staffTrend}% from last month`
+              }
             />
             <StatCard 
               icon={<FileText className="text-amber-500" />} 
               label={lang === 'sw' ? "Maombi" : "Applications"} 
               value={stats.totalApplications.toLocaleString()}
-              trend={+8.3}
+              trend={stats.applicationsTrend}
               description={lang === 'sw' ? 'Kiwango cha kuidhinishwa ' + applicationSuccessRate + '%' : 'Approval rate ' + applicationSuccessRate + '%'}
             />
             <StatCard 
               icon={<DollarSign className="text-emerald-500" />} 
               label={lang === 'sw' ? "Mapato" : "Revenue"} 
               value={formatCurrency(stats.totalRevenue, currency)}
-              trend={+15.7}
+              trend={stats.revenueTrend}
               description={lang === 'sw' ? 'Leo: ' + formatCurrency(stats.todayRevenue, currency) : 'Today: ' + formatCurrency(stats.todayRevenue, currency)}
             />
           </div>
@@ -712,10 +753,10 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
                   <div className="flex items-center gap-2">
                     <Database size={16} className="text-amber-500" />
                     <span className="font-medium text-stone-600">
-                      API {lang === 'sw' ? 'Miito' : 'Calls'}
+                      {lang === 'sw' ? 'Jumla ya Rekodi' : 'Total Records'}
                     </span>
                   </div>
-                  <span className="font-bold text-stone-900">{(stats.apiCalls / 1000000).toFixed(1)}M</span>
+                  <span className="font-bold text-stone-900">{stats.apiCalls.toLocaleString()}</span>
                 </div>
               </div>
             </div>
