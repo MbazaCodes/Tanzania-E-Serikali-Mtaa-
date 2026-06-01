@@ -1,332 +1,125 @@
-// @ts-nocheck — dynamic form data rendering; fields vary by service type
+// @ts-nocheck
 /**
- * Risiti ya Malipo PDF
- * Payment Receipt
- * 
- * This is a general receipt for all service payments
+ * Risiti ya Malipo — Official Payment Receipt
  */
 import React from 'react';
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
-import { DocumentPDFProps, commonStyles, generateQRCodeUrl, formatFullName, formatDate, formatCurrency } from './types';
+import { DocumentPDFProps, commonStyles as s, generateQRCodeUrl, formatFullName, formatDate, formatCurrency } from './types';
 import { TANZANIA_LOGO_BASE64 } from '@/constants/logo';
 
-// Receipt-specific styles
-const receiptStyles = StyleSheet.create({
-  receiptBanner: {
-    backgroundColor: '#059669',
-    padding: 15,
-    alignItems: 'center',
-    marginBottom: 20,
-    borderRadius: 4,
+const ls = StyleSheet.create({
+  paidBanner: {
+    backgroundColor: '#059669', padding: 12, alignItems: 'center', marginBottom: 14, borderRadius: 2,
   },
-  paidText: {
-    color: '#ffffff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    letterSpacing: 2,
+  paidText:    { color: '#ffffff', fontSize: 20, fontWeight: 'bold', letterSpacing: 3 },
+  receiptNo:   { color: '#d1fae5', fontSize: 8, marginTop: 4, fontFamily: 'Courier' },
+  amountCard: {
+    backgroundColor: '#f0fdf4', borderWidth: 2, borderColor: '#059669',
+    padding: 14, alignItems: 'center', marginVertical: 12, borderRadius: 2,
   },
-  receiptNumber: {
-    color: '#d1fae5',
-    fontSize: 10,
-    marginTop: 5,
-  },
-  paymentCard: {
-    backgroundColor: '#f0fdf4',
-    borderWidth: 2,
-    borderColor: '#059669',
-    padding: 20,
-    alignItems: 'center',
-    marginVertical: 15,
-    borderRadius: 8,
-  },
-  amountLabel: {
-    fontSize: 10,
-    color: '#065f46',
-    marginBottom: 5,
-  },
-  amountValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#059669',
-    marginBottom: 5,
-  },
-  amountWords: {
-    fontSize: 9,
-    color: '#065f46',
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
-  detailsTable: {
-    marginVertical: 15,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 4,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    padding: 10,
-  },
-  tableRowAlt: {
-    backgroundColor: '#f9fafb',
-  },
-  tableLabel: {
-    width: '40%',
-    fontSize: 10,
-    color: '#6b7280',
-    fontWeight: 'bold',
-  },
-  tableValue: {
-    width: '60%',
-    fontSize: 10,
-    color: '#1f2937',
-  },
-  methodBadge: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    alignSelf: 'flex-start',
-  },
-  methodText: {
-    color: '#ffffff',
-    fontSize: 8,
-    fontWeight: 'bold',
-  },
-  stampSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 30,
-    paddingTop: 20,
-    borderTopWidth: 2,
-    borderTopColor: '#059669',
-  },
-  stampBox: {
-    alignItems: 'center',
-    width: '30%',
-  },
-  stampCircle: {
-    width: 60,
-    height: 60,
-    borderWidth: 2,
-    borderColor: '#059669',
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 5,
-  },
-  stampText: {
-    fontSize: 8,
-    color: '#059669',
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
+  amtLabel:  { fontSize: 8, color: '#065f46', marginBottom: 4 },
+  amtValue:  { fontSize: 28, fontWeight: 'bold', color: '#059669', marginBottom: 3 },
+  amtWords:  { fontSize: 8, color: '#065f46', fontStyle: 'italic' },
+  tableRow:  { flexDirection: 'row', paddingVertical: 6, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: '#e5e7eb' },
+  tableAlt:  { backgroundColor: '#f9fafb' },
+  tableLabel:{ width: '40%', fontSize: 9, color: '#6b7280', fontWeight: 'bold' },
+  tableValue:{ width: '60%', fontSize: 9, color: '#1c1917' },
 });
 
-// Convert number to words for amounts (simplified)
-const numberToWords = (num: number, lang: string): string => {
-  if (num === 0) return lang === 'sw' ? 'Sifuri' : 'Zero';
-  
-  const ones = {
-    sw: ['', 'Moja', 'Mbili', 'Tatu', 'Nne', 'Tano', 'Sita', 'Saba', 'Nane', 'Tisa'],
-    en: ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine']
-  };
-  
-  // For simplicity, just return the formatted number with currency word
-  const currency = lang === 'sw' ? 'Shilingi za Tanzania' : 'Tanzanian Shillings';
-  return `${currency} ${num.toLocaleString()} ${lang === 'sw' ? 'tu' : 'Only'}`;
+const PAYMENT_METHODS: Record<string, { sw: string; en: string }> = {
+  mpesa:     { sw: 'M-Pesa', en: 'M-Pesa' },
+  tigopesa:  { sw: 'Tigo Pesa', en: 'Tigo Pesa' },
+  airtelmoney: { sw: 'Airtel Money', en: 'Airtel Money' },
+  halopesa:  { sw: 'HaloPesa', en: 'HaloPesa' },
+  bank:      { sw: 'Benki', en: 'Bank Transfer' },
+  cash:      { sw: 'Taslimu', en: 'Cash' },
 };
 
-// Payment method labels
-const paymentMethodLabels: Record<string, { sw: string; en: string }> = {
-  'MOBILE_MONEY': { sw: 'Simu', en: 'Mobile Money' },
-  'BANK_TRANSFER': { sw: 'Benki', en: 'Bank Transfer' },
-  'CASH': { sw: 'Taslimu', en: 'Cash' },
-  'CARD': { sw: 'Kadi', en: 'Card' },
-};
+export const RisitiMalipoPDF: React.FC<DocumentPDFProps> = ({ application, lang, qrDataUrl }) => {
+  const user   = (application as any).users;
+  const fd     = (application.form_data || {}) as Record<string, unknown>;
+  const pd     = (fd.payment_data || application.payment_data || {}) as Record<string, unknown>;
+  const qr     = qrDataUrl || generateQRCodeUrl(application, 'RCP');
+  const sw     = lang === 'sw';
 
-export const RisitiMalipoPDF: React.FC<DocumentPDFProps> = ({ application, lang }) => {
-  const user = (application as any).users;
-  const serviceFee = (application.form_data as Record<string, unknown>)?.service_fee || 0;
-  const paymentMethod = (application as any).payment_method || 'MOBILE_MONEY';
-  const paymentReference = (application as any).payment_reference || application.application_number;
+  const amount  = Number(pd.amount || fd.service_fee || (application as any).services?.fee || 0);
+  const method  = String(pd.payment_method || 'mpesa');
+  const methodLabel = (PAYMENT_METHODS[method.toLowerCase()] || { sw: method, en: method })[lang];
+  const txnId   = String(pd.transaction_id || application.application_number || '—');
+  const paidAt  = String(pd.paid_at || application.paid_at || application.approved_at || application.created_at || '');
 
-  const qrCodeUrl = generateQRCodeUrl(application, 'Risiti ya Malipo');
-
-  const getPaymentMethodLabel = (method: string): string => {
-    const label = paymentMethodLabels[method];
-    if (label) return lang === 'sw' ? label.sw : label.en;
-    return method;
+  const L = {
+    title:      sw ? 'RISITI YA MALIPO' : 'PAYMENT RECEIPT',
+    paymentInfo:sw ? 'TAARIFA ZA MALIPO' : 'PAYMENT DETAILS',
+    applicantInfo: sw ? 'TAARIFA ZA MLIPAJI' : 'PAYER DETAILS',
+    scanVerify: sw ? 'Changanua kuthibitisha' : 'Scan to verify',
+    footer:     sw ? 'Risiti hii ni hati rasmi ya malipo ya serikali. Hushindwi kubadilishwa.' : 'This is an official government payment receipt. Non-transferable.',
   };
 
-  const labels = {
-    sw: {
-      title: 'RISITI YA MALIPO',
-      paid: 'IMELIPWA',
-      receiptNo: 'Nambari ya Risiti',
-      amountLabel: 'KIASI KILICHOLIPWA',
-      paymentDetails: 'TAARIFA ZA MALIPO',
-      service: 'Huduma',
-      applicationNo: 'Nambari ya Maombi',
-      paymentMethod: 'Njia ya Malipo',
-      reference: 'Nambari ya Transaction',
-      paymentDate: 'Tarehe ya Malipo',
-      paidBy: 'TAARIFA ZA MLIPAJI',
-      fullName: 'Jina la Mlipaji',
-      nida: 'NIDA',
-      phone: 'Simu',
-      address: 'Anwani',
-      cashier: 'Karani',
-      verified: 'Imethibitishwa',
-      originalCopy: 'Nakala Halali',
-      footer: 'Risiti hii ni ushahidi wa malipo. Hifadhi kwa rekodi zako.',
-    },
-    en: {
-      title: 'PAYMENT RECEIPT',
-      paid: 'PAID',
-      receiptNo: 'Receipt Number',
-      amountLabel: 'AMOUNT PAID',
-      paymentDetails: 'PAYMENT DETAILS',
-      service: 'Service',
-      applicationNo: 'Application Number',
-      paymentMethod: 'Payment Method',
-      reference: 'Transaction Reference',
-      paymentDate: 'Payment Date',
-      paidBy: 'PAYER INFORMATION',
-      fullName: 'Payer Name',
-      nida: 'NIDA',
-      phone: 'Phone',
-      address: 'Address',
-      cashier: 'Cashier',
-      verified: 'Verified',
-      originalCopy: 'Original Copy',
-      footer: 'This receipt is proof of payment. Keep it for your records.',
-    }
-  };
-
-  const t = labels[lang];
+  const TRow = ({ label, value, alt }: { label: string; value: string; alt?: boolean }) => (
+    <View style={[ls.tableRow, alt ? ls.tableAlt : {}]}>
+      <Text style={ls.tableLabel}>{label}</Text>
+      <Text style={ls.tableValue}>{value}</Text>
+    </View>
+  );
 
   return (
     <Document>
-      <Page size="A4" style={commonStyles.page}>
-        <Text style={commonStyles.watermark}>E-MTAA</Text>
+      <Page size="A4" style={s.page}>
+        <Text style={s.watermark}>E-MTAA</Text>
 
         {/* Header */}
-        <View style={commonStyles.header}>
-          <Image src={TANZANIA_LOGO_BASE64} style={commonStyles.logo} />
-          <Text style={commonStyles.country}>JAMHURI YA MUUNGANO WA TANZANIA</Text>
-          <Text style={commonStyles.office}>OFISI YA RAIS - TAMISEMI</Text>
-          <View style={commonStyles.divider} />
+        <View style={[s.header, { paddingLeft: 0 }]}>
+          <Image src={TANZANIA_LOGO_BASE64} style={s.logo} />
+          <Text style={s.country}>JAMHURI YA MUUNGANO WA TANZANIA</Text>
+          <Text style={s.office}>OFISI YA RAIS — TAMISEMI</Text>
+          <View style={s.divider} />
         </View>
 
         {/* Title */}
-        <Text style={commonStyles.title}>{t.title}</Text>
-
-        {/* Paid Banner */}
-        <View style={receiptStyles.receiptBanner}>
-          <Text style={receiptStyles.paidText}>✓ {t.paid}</Text>
-          <Text style={receiptStyles.receiptNumber}>
-            {t.receiptNo}: {paymentReference}
-          </Text>
+        <View style={s.titleBlock}>
+          <Text style={s.title}>{L.title}</Text>
+          <View style={s.appNumberBadge}><Text style={s.appNumberText}>{application.application_number}</Text></View>
         </View>
 
-        {/* Amount Card */}
-        <View style={receiptStyles.paymentCard}>
-          <Text style={receiptStyles.amountLabel}>{t.amountLabel}</Text>
-          <Text style={receiptStyles.amountValue}>{formatCurrency(serviceFee)}</Text>
-          <Text style={receiptStyles.amountWords}>{numberToWords(serviceFee, lang)}</Text>
+        {/* Paid banner */}
+        <View style={ls.paidBanner}>
+          <Text style={ls.paidText}>{sw ? 'IMELIPWA' : 'PAID'}</Text>
+          <Text style={ls.receiptNo}>{txnId}</Text>
         </View>
 
-        {/* Payment Details Table */}
-        <View style={receiptStyles.detailsTable}>
-          <View style={receiptStyles.tableRow}>
-            <Text style={receiptStyles.tableLabel}>{t.service}</Text>
-            <Text style={receiptStyles.tableValue}>{application.service_name}</Text>
-          </View>
-          <View style={[receiptStyles.tableRow, receiptStyles.tableRowAlt]}>
-            <Text style={receiptStyles.tableLabel}>{t.applicationNo}</Text>
-            <Text style={receiptStyles.tableValue}>{application.application_number}</Text>
-          </View>
-          <View style={receiptStyles.tableRow}>
-            <Text style={receiptStyles.tableLabel}>{t.paymentMethod}</Text>
-            <View style={receiptStyles.methodBadge}>
-              <Text style={receiptStyles.methodText}>{getPaymentMethodLabel(paymentMethod)}</Text>
-            </View>
-          </View>
-          <View style={[receiptStyles.tableRow, receiptStyles.tableRowAlt]}>
-            <Text style={receiptStyles.tableLabel}>{t.reference}</Text>
-            <Text style={receiptStyles.tableValue}>{paymentReference}</Text>
-          </View>
-          <View style={[receiptStyles.tableRow, { borderBottomWidth: 0 }]}>
-            <Text style={receiptStyles.tableLabel}>{t.paymentDate}</Text>
-            <Text style={receiptStyles.tableValue}>
-              {formatDate(application.paid_at || application.updated_at)}
-            </Text>
-          </View>
+        {/* Amount card */}
+        <View style={ls.amountCard}>
+          <Text style={ls.amtLabel}>{sw ? 'KIASI KILICHOLIPWA' : 'AMOUNT PAID'}</Text>
+          <Text style={ls.amtValue}>{formatCurrency(amount)}</Text>
         </View>
 
-        {/* Payer Information */}
-        <View style={commonStyles.sectionHeader}>
-          <Text style={commonStyles.sectionTitle}>{t.paidBy}</Text>
-        </View>
+        {/* Payment details table */}
+        <View style={s.sectionHeader}><Text style={s.sectionTitle}>{L.paymentInfo}</Text></View>
+        <TRow label={sw ? 'Namba ya Muamala' : 'Transaction ID'} value={txnId} />
+        <TRow label={sw ? 'Njia ya Malipo' : 'Payment Method'}   value={methodLabel} alt />
+        <TRow label={sw ? 'Tarehe ya Malipo' : 'Payment Date'}   value={formatDate(paidAt)} />
+        <TRow label={sw ? 'Huduma' : 'Service'}                  value={application.service_name || '—'} alt />
+        <TRow label={sw ? 'Namba ya Maombi' : 'Application No.'} value={application.application_number || '—'} />
 
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.fullName}:</Text>
-          <Text style={commonStyles.infoValue}>{formatFullName(user)}</Text>
-        </View>
+        {/* Payer details */}
+        <View style={s.sectionHeader}><Text style={s.sectionTitle}>{L.applicantInfo}</Text></View>
+        <TRow label={sw ? 'Jina' : 'Name'}       value={formatFullName(user)} />
+        <TRow label="NIDA"                         value={user?.nida_number || '—'} alt />
+        <TRow label={sw ? 'Namba ya Raia' : 'Citizen ID'} value={user?.citizen_id || '—'} />
+        <TRow label={sw ? 'Simu' : 'Phone'}       value={user?.phone || '—'} alt />
 
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.nida}:</Text>
-          <Text style={commonStyles.infoValue}>{user?.nida_number || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.phone}:</Text>
-          <Text style={commonStyles.infoValue}>{user?.phone || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.address}:</Text>
-          <Text style={commonStyles.infoValue}>
-            {[user?.street, user?.ward, user?.district].filter(Boolean).join(', ') || 'N/A'}
-          </Text>
-        </View>
-
-        {/* Stamps Section */}
-        <View style={receiptStyles.stampSection}>
-          <View style={receiptStyles.stampBox}>
-            <View style={receiptStyles.stampCircle}>
-              <Text style={receiptStyles.stampText}>{t.cashier}</Text>
-            </View>
-            <Text style={{ fontSize: 8, color: '#6b7280' }}>E-MTAA</Text>
-          </View>
-          <View style={receiptStyles.stampBox}>
-            <View style={receiptStyles.stampCircle}>
-              <Text style={receiptStyles.stampText}>{t.verified}</Text>
-            </View>
-            <Text style={{ fontSize: 8, color: '#6b7280' }}>{new Date().toLocaleDateString()}</Text>
-          </View>
-          <View style={receiptStyles.stampBox}>
-            <View style={receiptStyles.stampCircle}>
-              <Text style={receiptStyles.stampText}>{t.originalCopy}</Text>
-            </View>
-            <Text style={{ fontSize: 8, color: '#6b7280' }}>ORIGINAL</Text>
-          </View>
-        </View>
-
-        {/* QR Code */}
-        <View style={commonStyles.qrSection}>
-          <Image src={qrCodeUrl} style={commonStyles.qrCode} />
-          <Text style={commonStyles.qrLabel}>{paymentReference}</Text>
+        {/* QR */}
+        <View style={s.qrSection}>
+          <View style={s.qrBorder}><Image src={qr} style={s.qrCode} /></View>
+          <Text style={s.qrLabel}>{L.scanVerify}</Text>
+          <Text style={s.qrRef}>{txnId}</Text>
         </View>
 
         {/* Footer */}
-        <View style={commonStyles.footer}>
-          <Text style={commonStyles.footerText}>{t.footer}</Text>
-          <Text style={commonStyles.metadata}>
-            PAYMENT ID: {application.id.toUpperCase()} | GENERATED ON: {new Date().toISOString()}
-          </Text>
+        <View style={s.footer}>
+          <Text style={s.footerText}>{L.footer}</Text>
+          <Text style={s.metadata}>{formatDate(paidAt)}</Text>
         </View>
       </Page>
     </Document>

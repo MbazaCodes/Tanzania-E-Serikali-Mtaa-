@@ -1,222 +1,162 @@
-// @ts-nocheck — dynamic form data rendering; fields vary by service type
+// @ts-nocheck
 /**
- * Utambulisho wa Mkazi PDF
- * Residency Certificate / Identification Letter
- * 
- * Service: Utambulisho wa Mkazi
+ * Utambulisho wa Mkazi — Residency Certificate
+ * Layout: A4, government letterhead, photo top-left, QR bottom-right
  */
 import React from 'react';
 import { Document, Page, Text, View, Image } from '@react-pdf/renderer';
 import { DocumentPDFProps, commonStyles, generateQRCodeUrl, formatFullName, formatDate } from './types';
 import { TANZANIA_LOGO_BASE64 } from '@/constants/logo';
 
-export const UtambulishoMkaziPDF: React.FC<DocumentPDFProps> = ({ application, lang }) => {
+export const UtambulishoMkaziPDF: React.FC<DocumentPDFProps> = ({ application, lang, qrDataUrl }) => {
   const user = (application as any).users;
-  const formData = application.form_data as Record<string, unknown> || {};
-  const qrCodeUrl = generateQRCodeUrl(application, 'Utambulisho wa Mkazi');
+  const fd = (application.form_data || {}) as Record<string, unknown>;
+  const qr = qrDataUrl || generateQRCodeUrl(application, 'MKZ');
+  const s = commonStyles;
+  const sw = lang === 'sw';
 
-  const labels = {
-    sw: {
-      title: 'CHETI CHA MKAZI',
-      council: 'Halmashauri',
-      maritalStatus: 'Hali ya Ndoa',
-      occupation: 'Kazi/Shughuli',
-      neighborhood: 'Kitongoji',
-      houseNo: 'Nyumba Na.',
-      block: 'Block/Area',
-      purpose: 'Sababu ya Maombi',
-      institution: 'Taasisi',
-      institutionType: 'Aina ya Taasisi',
-      nida: 'Namba ya NIDA',
-      citizenId: 'Namba ya Raia',
-      region: 'Mkoa',
-      district: 'Wilaya',
-      ward: 'Kata',
-      street: 'Mtaa',
-      applicantSig: 'Sahihi ya Mwombaji',
-      officerSig: 'Sahihi na Muhuri',
-      weo: 'AFISA MTENDAJI WA MTAA',
-      scanVerify: 'Scan kuthibitisha',
-      footer: 'Cheti hiki ni rasmi na kinaweza kuthibitishwa kwa kuchanganua QR code.',
-      personalInfo: 'TAARIFA BINAFSI',
-      residenceInfo: 'TAARIFA ZA MAKAZI',
-      purposeInfo: 'SABABU YA MAOMBI',
-    },
-    en: {
-      title: 'RESIDENCY CERTIFICATE',
-      council: 'Council',
-      maritalStatus: 'Marital Status',
-      occupation: 'Occupation',
-      neighborhood: 'Neighborhood',
-      houseNo: 'House No.',
-      block: 'Block/Area',
-      purpose: 'Purpose',
-      institution: 'Institution',
-      institutionType: 'Institution Type',
-      nida: 'NIDA Number',
-      citizenId: 'Citizen ID',
-      region: 'Region',
-      district: 'District',
-      ward: 'Ward',
-      street: 'Street',
-      applicantSig: 'Applicant Signature',
-      officerSig: 'Signature & Stamp',
-      weo: 'WARD EXECUTIVE OFFICER',
-      scanVerify: 'Scan to verify',
-      footer: 'This certificate is official and can be verified by scanning the QR code.',
-      personalInfo: 'PERSONAL INFORMATION',
-      residenceInfo: 'RESIDENCE INFORMATION',
-      purposeInfo: 'PURPOSE OF APPLICATION',
-    }
+  const L = {
+    title:    sw ? 'CHETI CHA UTAMBULISHO WA MKAZI' : 'CERTIFICATE OF RESIDENCY',
+    personal: sw ? 'TAARIFA BINAFSI' : 'PERSONAL INFORMATION',
+    address:  sw ? 'TAARIFA ZA MAKAZI' : 'RESIDENCE DETAILS',
+    purpose:  sw ? 'SABABU YA MAOMBI' : 'PURPOSE OF APPLICATION',
+    fullName: sw ? 'Jina Kamili' : 'Full Name',
+    nida:     sw ? 'Namba ya NIDA' : 'NIDA Number',
+    citizenId:sw ? 'Namba ya Raia' : 'Citizen ID',
+    marital:  sw ? 'Hali ya Ndoa' : 'Marital Status',
+    dob:      sw ? 'Tarehe ya Kuzaliwa' : 'Date of Birth',
+    sex:      sw ? 'Jinsi' : 'Sex',
+    occupation: sw ? 'Kazi / Shughuli' : 'Occupation',
+    council:  sw ? 'Halmashauri' : 'Council',
+    region:   sw ? 'Mkoa' : 'Region',
+    district: sw ? 'Wilaya' : 'District',
+    ward:     sw ? 'Kata' : 'Ward',
+    street:   sw ? 'Mtaa' : 'Street',
+    neighborhood: sw ? 'Kitongoji' : 'Neighborhood',
+    houseNo:  sw ? 'Namba ya Nyumba' : 'House Number',
+    purposeLabel: sw ? 'Sababu' : 'Purpose',
+    institution:  sw ? 'Taasisi' : 'Institution',
+    applicantSig: sw ? 'SAHIHI YA MWOMBAJI' : 'APPLICANT SIGNATURE',
+    weoSig:       sw ? 'AFISA MTENDAJI WA MTAA / KIJIJI' : 'WARD / VILLAGE EXECUTIVE OFFICER',
+    scanVerify: sw ? 'Changanua kuthibitisha' : 'Scan to verify',
+    footer:   sw
+      ? 'Cheti hiki ni rasmi cha serikali na kinaweza kuthibitishwa kupitia QR code au tovuti ya E-Mtaa.'
+      : 'This is an official government certificate. Verify via QR code or the E-Mtaa portal.',
+    issued:   sw ? 'Imetolewa' : 'Issued',
   };
 
-  const t = labels[lang];
+  const Row = ({ label, value }: { label: string; value?: unknown }) => (
+    <View style={s.infoRow}>
+      <Text style={s.infoLabel}>{label}:</Text>
+      <Text style={s.infoValue}>{String(value || 'N/A')}</Text>
+    </View>
+  );
 
   return (
     <Document>
-      <Page size="A4" style={commonStyles.page}>
-        <Text style={commonStyles.watermark}>E-MTAA</Text>
+      <Page size="A4" style={s.page}>
+        <Text style={s.watermark}>E-MTAA</Text>
 
-        {/* Photo Box */}
-        <View style={commonStyles.photoSection}>
-          <View style={commonStyles.photoBox}>
-            {user?.photo_url ? (
-              <Image src={user.photo_url} style={commonStyles.photo} />
-            ) : (
-              <Text style={commonStyles.photoPlaceholder}>PICHA{'\n'}PHOTO</Text>
-            )}
+        {/* ── Photo box ── */}
+        <View style={s.photoSection}>
+          <View style={s.photoBox}>
+            {user?.photo_url
+              ? <Image src={user.photo_url} style={s.photo} />
+              : <Text style={s.photoPlaceholder}>{'PICHA\nPHOTO'}</Text>}
           </View>
-          <Text style={commonStyles.nidaLabel}>{t.nida}</Text>
-          <Text style={commonStyles.nidaNumber}>{user?.nida_number || 'N/A'}</Text>
+          <Text style={s.nidaLabel}>{L.nida}</Text>
+          <Text style={s.nidaNumber}>{user?.nida_number || '—'}</Text>
         </View>
 
-        {/* Header */}
-        <View style={commonStyles.header}>
-          <Image src={TANZANIA_LOGO_BASE64} style={commonStyles.logo} />
-          <Text style={commonStyles.country}>JAMHURI YA MUUNGANO WA TANZANIA</Text>
-          <Text style={commonStyles.office}>OFISI YA RAIS - TAMISEMI</Text>
-          <View style={commonStyles.divider} />
+        {/* ── Government header ── */}
+        <View style={s.header}>
+          <Image src={TANZANIA_LOGO_BASE64} style={s.logo} />
+          <Text style={s.country}>JAMHURI YA MUUNGANO WA TANZANIA</Text>
+          <Text style={s.office}>OFISI YA RAIS — TAWALA ZA MIKOA NA SERIKALI ZA MITAA (TAMISEMI)</Text>
+          {fd.council && <Text style={s.council}>{String(fd.council)}</Text>}
+          <View style={s.divider} />
         </View>
 
-        {/* Title */}
-        <Text style={commonStyles.title}>{t.title}</Text>
-
-        {/* Personal Information Section */}
-        <View style={commonStyles.sectionHeader}>
-          <Text style={commonStyles.sectionTitle}>{t.personalInfo}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{lang === 'sw' ? 'Jina Kamili:' : 'Full Name:'}</Text>
-          <Text style={commonStyles.infoValue}>{formatFullName(user)}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.nida}:</Text>
-          <Text style={commonStyles.infoValue}>{user?.nida_number || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.citizenId}:</Text>
-          <Text style={commonStyles.infoValue}>{user?.citizen_id || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.maritalStatus}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.marital_status || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.occupation}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.occupation || 'N/A'}</Text>
-        </View>
-
-        {/* Residence Information Section */}
-        <View style={commonStyles.sectionHeader}>
-          <Text style={commonStyles.sectionTitle}>{t.residenceInfo}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.council}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.council || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.region}:</Text>
-          <Text style={commonStyles.infoValue}>{user?.region || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.district}:</Text>
-          <Text style={commonStyles.infoValue}>{user?.district || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.ward}:</Text>
-          <Text style={commonStyles.infoValue}>{user?.ward || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.street}:</Text>
-          <Text style={commonStyles.infoValue}>{user?.street || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.neighborhood}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.neighborhood || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.houseNo}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.house_number || 'N/A'}</Text>
-        </View>
-
-        {/* Purpose Section */}
-        <View style={commonStyles.sectionHeader}>
-          <Text style={commonStyles.sectionTitle}>{t.purposeInfo}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.purpose}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.purpose || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.institution}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.institution_name || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.institutionType}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.institution_type || 'N/A'}</Text>
-        </View>
-
-        {/* Signatures */}
-        <View style={commonStyles.signatureSection}>
-          <View style={commonStyles.signatureBox}>
-            <View style={commonStyles.signatureLine} />
-            <Text style={commonStyles.signatureName}>{formatFullName(user)}</Text>
-            <Text style={commonStyles.signatureTitle}>{t.applicantSig}</Text>
-          </View>
-          <View style={[commonStyles.signatureBox, { textAlign: 'right', alignItems: 'flex-end' }]}>
-            <View style={commonStyles.signatureLine} />
-            <Text style={commonStyles.signatureName}>{t.weo}</Text>
-            <Text style={commonStyles.signatureTitle}>{t.officerSig}</Text>
+        {/* ── Title + application number badge ── */}
+        <View style={s.titleBlock}>
+          <Text style={s.title}>{L.title}</Text>
+          <View style={s.appNumberBadge}>
+            <Text style={s.appNumberText}>{application.application_number}</Text>
           </View>
         </View>
 
-        {/* QR Code */}
-        <View style={commonStyles.qrSection}>
-          <Image src={qrCodeUrl} style={commonStyles.qrCode} />
-          <Text style={commonStyles.qrLabel}>{t.scanVerify}</Text>
-          <Text style={commonStyles.qrLabel}>{application.application_number}</Text>
+        {/* ── Personal Information ── */}
+        <View style={s.sectionHeader}>
+          <Text style={s.sectionTitle}>{L.personal}</Text>
+        </View>
+        <View style={s.twoCol}>
+          <View style={s.colLeft}>
+            <Row label={L.fullName}   value={formatFullName(user)} />
+            <Row label={L.nida}       value={user?.nida_number} />
+            <Row label={L.citizenId}  value={user?.citizen_id} />
+            <Row label={L.dob}        value={user?.date_of_birth ? formatDate(user.date_of_birth) : undefined} />
+          </View>
+          <View style={s.colRight}>
+            <Row label={L.sex}        value={user?.sex === 'M' ? (sw ? 'Mume' : 'Male') : user?.sex === 'F' ? (sw ? 'Mke' : 'Female') : user?.sex} />
+            <Row label={L.marital}    value={fd.marital_status} />
+            <Row label={L.occupation} value={fd.occupation} />
+          </View>
         </View>
 
-        {/* Footer */}
-        <View style={commonStyles.footer}>
-          <Text style={commonStyles.footerText}>{t.footer}</Text>
-          <Text style={commonStyles.metadata}>
-            VERIFICATION ID: {application.id.toUpperCase()} | GENERATED ON: {new Date().toISOString()}
+        {/* ── Residence Details ── */}
+        <View style={s.sectionHeader}>
+          <Text style={s.sectionTitle}>{L.address}</Text>
+        </View>
+        <View style={s.twoCol}>
+          <View style={s.colLeft}>
+            <Row label={L.region}       value={user?.region} />
+            <Row label={L.district}     value={user?.district} />
+            <Row label={L.ward}         value={user?.ward} />
+            <Row label={L.street}       value={user?.street} />
+          </View>
+          <View style={s.colRight}>
+            <Row label={L.neighborhood} value={fd.neighborhood} />
+            <Row label={L.houseNo}      value={fd.house_number} />
+          </View>
+        </View>
+
+        {/* ── Purpose ── */}
+        {(fd.purpose || fd.institution_name) && <>
+          <View style={s.sectionHeader}>
+            <Text style={s.sectionTitle}>{L.purpose}</Text>
+          </View>
+          <Row label={L.purposeLabel}  value={fd.purpose} />
+          {fd.institution_name && <Row label={L.institution} value={fd.institution_name} />}
+        </>}
+
+        {/* ── Signatures ── */}
+        <View style={s.signatureSection}>
+          <View style={s.signatureBox}>
+            <View style={s.signatureLine} />
+            <Text style={s.signatureName}>{formatFullName(user)}</Text>
+            <Text style={s.signatureTitle}>{L.applicantSig}</Text>
+          </View>
+          <View style={s.signatureBox}>
+            <View style={s.stampBox}><Text style={s.stampText}>MUHURI{'\n'}STAMP</Text></View>
+            <View style={s.signatureLine} />
+            <Text style={s.signatureTitle}>{L.weoSig}</Text>
+          </View>
+        </View>
+
+        {/* ── QR code ── */}
+        <View style={s.qrSection}>
+          <View style={s.qrBorder}>
+            <Image src={qr} style={s.qrCode} />
+          </View>
+          <Text style={s.qrLabel}>{L.scanVerify}</Text>
+          <Text style={s.qrRef}>{application.application_number}</Text>
+        </View>
+
+        {/* ── Footer ── */}
+        <View style={s.footer}>
+          <Text style={s.footerText}>{L.footer}</Text>
+          <Text style={s.metadata}>
+            {L.issued}: {formatDate(application.issued_at || application.approved_at || application.created_at)}
           </Text>
         </View>
       </Page>

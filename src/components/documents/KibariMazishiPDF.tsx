@@ -1,233 +1,145 @@
-// @ts-nocheck — dynamic form data rendering; fields vary by service type
+// @ts-nocheck
 /**
- * Kibari cha Mazishi PDF
- * Funeral Announcement / Permit
- * 
- * Service: Kibari cha Mazishi
+ * Kibari cha Mazishi — Funeral Permit
  */
 import React from 'react';
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
-import { DocumentPDFProps, commonStyles, generateQRCodeUrl, formatFullName, formatDate } from './types';
+import { DocumentPDFProps, commonStyles as s, generateQRCodeUrl, formatFullName, formatDate } from './types';
 import { TANZANIA_LOGO_BASE64 } from '@/constants/logo';
 
-// Additional styles for funeral document
-const funeralStyles = StyleSheet.create({
-  condolenceBox: {
+const ls = StyleSheet.create({
+  mourningBar: {
     backgroundColor: '#1c1917',
-    padding: 15,
-    marginBottom: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  condolenceText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 5,
-  },
-  arabicText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
-  deceasedName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
-    textTransform: 'uppercase',
-  },
-  dateRange: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#57534e',
-    marginBottom: 20,
-  },
+  arabicText:  { color: '#d4b896', fontSize: 10, fontStyle: 'italic' },
+  condolence:  { color: '#ffffff', fontSize: 11, fontWeight: 'bold', letterSpacing: 0.5 },
+  deceasedName:{ fontSize: 17, fontWeight: 'bold', textAlign: 'center', textTransform: 'uppercase', color: '#1c1917', marginBottom: 2 },
+  lifespan:    { fontSize: 9, textAlign: 'center', color: '#78716c', marginBottom: 12 },
 });
 
-export const KibariMazishiPDF: React.FC<DocumentPDFProps> = ({ application, lang }) => {
+export const KibariMazishiPDF: React.FC<DocumentPDFProps> = ({ application, lang, qrDataUrl }) => {
   const user = (application as any).users;
-  const formData = application.form_data as Record<string, unknown> || {};
-  const qrCodeUrl = generateQRCodeUrl(application, 'Kibari cha Mazishi');
+  const fd   = (application.form_data || {}) as Record<string, unknown>;
+  const qr   = qrDataUrl || generateQRCodeUrl(application, 'MAZ');
+  const sw   = lang === 'sw';
 
-  const labels = {
-    sw: {
-      title: 'KIBARI CHA MAZISHI',
-      deceasedInfo: 'TAARIFA ZA MAREHEMU',
-      funeralSchedule: 'RATIBA YA MAZISHI',
-      familyContact: 'MWASILIANO YA FAMILIA',
-      deceasedName: 'Jina Kamili',
-      fathersName: 'Jina la Baba',
-      mothersName: 'Jina la Mama',
-      dateOfBirth: 'Tarehe ya Kuzaliwa',
-      dateOfDeath: 'Tarehe ya Kufariki',
-      placeOfDeath: 'Mahala pa Kufariki',
-      age: 'Umri',
-      spouse: 'Mume/Mke',
-      bodyLocation: 'Mahala ilipo Maiti',
-      funeralDate: 'Tarehe ya Mazishi',
-      funeralTime: 'Muda wa Mazishi',
-      serviceLocation: 'Mahala pa Huduma',
-      burialLocation: 'Mahala pa Kuzika',
-      representative: 'Mwakilishi wa Familia',
-      phone: 'Simu',
-      children: 'Watoto',
-      innalillahi: 'إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ',
-      condolence: 'POLE KWA MSIBA',
-      footer: 'Mwenyezi Mungu ailaze roho ya marehemu mahala pema peponi. Amina.',
-    },
-    en: {
-      title: 'FUNERAL PERMIT',
-      deceasedInfo: 'DECEASED INFORMATION',
-      funeralSchedule: 'FUNERAL SCHEDULE',
-      familyContact: 'FAMILY CONTACT',
-      deceasedName: 'Full Name',
-      fathersName: "Father's Name",
-      mothersName: "Mother's Name",
-      dateOfBirth: 'Date of Birth',
-      dateOfDeath: 'Date of Death',
-      placeOfDeath: 'Place of Death',
-      age: 'Age',
-      spouse: 'Spouse',
-      bodyLocation: 'Body Location',
-      funeralDate: 'Funeral Date',
-      funeralTime: 'Funeral Time',
-      serviceLocation: 'Service Location',
-      burialLocation: 'Burial Location',
-      representative: 'Family Representative',
-      phone: 'Phone',
-      children: 'Children',
-      innalillahi: 'إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ',
-      condolence: 'CONDOLENCES',
-      footer: 'May the Almighty rest the soul of the deceased in eternal peace. Amen.',
-    }
+  const L = {
+    title:    sw ? 'KIBARI CHA MAZISHI' : 'FUNERAL PERMIT',
+    deceasedInfo: sw ? 'TAARIFA ZA MAREHEMU' : 'DECEASED INFORMATION',
+    schedule: sw ? 'RATIBA YA MAZISHI' : 'FUNERAL SCHEDULE',
+    contact:  sw ? 'MAWASILIANO YA FAMILIA' : 'FAMILY CONTACT',
+    innalillahi: 'إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ',
+    condolence:  sw ? 'POLE KWA MSIBA' : 'OUR CONDOLENCES',
+    footer:   sw ? 'Mwenyezi Mungu ailaze roho yake mahala pema peponi. Amina.' : 'May God rest the soul of the deceased in eternal peace. Amen.',
+    issued:   sw ? 'Imetolewa' : 'Issued',
+    scanVerify: sw ? 'Changanua kuthibitisha' : 'Scan to verify',
   };
 
-  const t = labels[lang];
+  const Row = ({ label, value }: { label: string; value?: unknown }) => (
+    <View style={s.infoRow}>
+      <Text style={s.infoLabel}>{label}:</Text>
+      <Text style={s.infoValue}>{String(value || 'N/A')}</Text>
+    </View>
+  );
 
   return (
     <Document>
-      <Page size="A4" style={commonStyles.page}>
-        <Text style={commonStyles.watermark}>E-MTAA</Text>
+      <Page size="A4" style={s.page}>
+        <Text style={s.watermark}>E-MTAA</Text>
 
         {/* Header */}
-        <View style={commonStyles.header}>
-          <Image src={TANZANIA_LOGO_BASE64} style={commonStyles.logo} />
-          <Text style={commonStyles.country}>JAMHURI YA MUUNGANO WA TANZANIA</Text>
-          <Text style={commonStyles.office}>OFISI YA RAIS - TAMISEMI</Text>
-          <View style={commonStyles.divider} />
+        <View style={[s.header, { paddingLeft: 0 }]}>
+          <Image src={TANZANIA_LOGO_BASE64} style={s.logo} />
+          <Text style={s.country}>JAMHURI YA MUUNGANO WA TANZANIA</Text>
+          <Text style={s.office}>OFISI YA RAIS — TAMISEMI</Text>
+          <View style={s.divider} />
         </View>
 
-        {/* Title */}
-        <Text style={commonStyles.title}>{t.title}</Text>
-
-        {/* Condolence Box */}
-        <View style={funeralStyles.condolenceBox}>
-          <Text style={funeralStyles.arabicText}>{t.innalillahi}</Text>
-          <Text style={funeralStyles.condolenceText}>{t.condolence}</Text>
+        {/* Title + App number */}
+        <View style={s.titleBlock}>
+          <Text style={s.title}>{L.title}</Text>
+          <View style={s.appNumberBadge}>
+            <Text style={s.appNumberText}>{application.application_number}</Text>
+          </View>
         </View>
 
-        {/* Deceased Name */}
-        <Text style={funeralStyles.deceasedName}>{formData.deceased_full_name || 'N/A'}</Text>
-        <Text style={funeralStyles.dateRange}>
-          {formData.date_of_birth ? formatDate(formData.date_of_birth) : '?'} - {formatDate(formData.date_of_death)}
+        {/* Mourning bar */}
+        <View style={ls.mourningBar}>
+          <Text style={ls.arabicText}>{L.innalillahi}</Text>
+          <Text style={ls.condolence}>{L.condolence}</Text>
+        </View>
+
+        {/* Deceased name + dates */}
+        <Text style={ls.deceasedName}>{String(fd.deceased_full_name || 'N/A')}</Text>
+        <Text style={ls.lifespan}>
+          {fd.date_of_birth ? formatDate(String(fd.date_of_birth)) : '?'} — {fd.date_of_death ? formatDate(String(fd.date_of_death)) : '?'}
+          {fd.age_at_death ? `  (${fd.age_at_death} ${sw ? 'miaka' : 'yrs'})` : ''}
         </Text>
 
-        {/* Deceased Information Section */}
-        <View style={commonStyles.sectionHeader}>
-          <Text style={commonStyles.sectionTitle}>{t.deceasedInfo}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.fathersName}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.fathers_name || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.mothersName}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.mothers_name || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.age}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.age_at_death ? `${formData.age_at_death} ${lang === 'sw' ? 'miaka' : 'years'}` : 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.placeOfDeath}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.place_of_death || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.spouse}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.surviving_spouse || 'N/A'}</Text>
-        </View>
-
-        {/* Funeral Schedule Section */}
-        <View style={commonStyles.sectionHeader}>
-          <Text style={commonStyles.sectionTitle}>{t.funeralSchedule}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.bodyLocation}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.body_location || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.funeralDate}:</Text>
-          <Text style={commonStyles.infoValue}>{formatDate(formData.service_date)}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.funeralTime}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.service_time || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.serviceLocation}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.service_location || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.burialLocation}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.burial_location || 'N/A'}</Text>
-        </View>
-
-        {/* Family Contact Section */}
-        <View style={commonStyles.sectionHeader}>
-          <Text style={commonStyles.sectionTitle}>{t.familyContact}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.representative}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.family_representative || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.phone}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.representative_phone || 'N/A'}</Text>
-        </View>
-
-        {formData.children_names && (
-          <View style={commonStyles.infoRow}>
-            <Text style={commonStyles.infoLabel}>{t.children}:</Text>
-            <Text style={commonStyles.infoValue}>{formData.children_names}</Text>
+        {/* Deceased Info */}
+        <View style={s.sectionHeader}><Text style={s.sectionTitle}>{L.deceasedInfo}</Text></View>
+        <View style={s.twoCol}>
+          <View style={s.colLeft}>
+            <Row label={sw ? 'Jina la Baba' : "Father's Name"} value={fd.fathers_name} />
+            <Row label={sw ? 'Jina la Mama' : "Mother's Name"} value={fd.mothers_name} />
+            <Row label={sw ? 'Mume / Mke' : 'Spouse'}         value={fd.surviving_spouse} />
           </View>
-        )}
+          <View style={s.colRight}>
+            <Row label={sw ? 'Mahali Alipokufia' : 'Place of Death'} value={fd.place_of_death} />
+            <Row label={sw ? 'Maiti Ipo' : 'Body Location'}          value={fd.body_location} />
+          </View>
+        </View>
 
-        {/* QR Code */}
-        <View style={commonStyles.qrSection}>
-          <Image src={qrCodeUrl} style={commonStyles.qrCode} />
-          <Text style={commonStyles.qrLabel}>{application.application_number}</Text>
+        {/* Funeral Schedule */}
+        <View style={s.sectionHeader}><Text style={s.sectionTitle}>{L.schedule}</Text></View>
+        <View style={s.twoCol}>
+          <View style={s.colLeft}>
+            <Row label={sw ? 'Tarehe ya Mazishi' : 'Funeral Date'}  value={fd.service_date ? formatDate(String(fd.service_date)) : undefined} />
+            <Row label={sw ? 'Muda' : 'Time'}                        value={fd.service_time} />
+            <Row label={sw ? 'Mahali pa Ibada' : 'Service Venue'}   value={fd.service_location} />
+          </View>
+          <View style={s.colRight}>
+            <Row label={sw ? 'Mahali pa Kuzikwa' : 'Burial Site'}   value={fd.burial_location} />
+          </View>
+        </View>
+
+        {/* Family Contact */}
+        <View style={s.sectionHeader}><Text style={s.sectionTitle}>{L.contact}</Text></View>
+        <Row label={sw ? 'Mwakilishi' : 'Representative'} value={fd.family_representative} />
+        <Row label={sw ? 'Simu' : 'Phone'}                value={fd.representative_phone} />
+        {fd.children_names && <Row label={sw ? 'Watoto' : 'Children'} value={fd.children_names} />}
+
+        {/* Stamp + signature */}
+        <View style={s.signatureSection}>
+          <View style={s.signatureBox}>
+            <View style={s.signatureLine} />
+            <Text style={s.signatureName}>{formatFullName(user)}</Text>
+            <Text style={s.signatureTitle}>{sw ? 'MWOMBAJI' : 'APPLICANT'}</Text>
+          </View>
+          <View style={s.signatureBox}>
+            <View style={s.stampBox}><Text style={s.stampText}>MUHURI{'\n'}STAMP</Text></View>
+            <View style={s.signatureLine} />
+            <Text style={s.signatureTitle}>{sw ? 'AFISA MTENDAJI WA MTAA' : 'WARD EXECUTIVE OFFICER'}</Text>
+          </View>
+        </View>
+
+        {/* QR */}
+        <View style={s.qrSection}>
+          <View style={s.qrBorder}><Image src={qr} style={s.qrCode} /></View>
+          <Text style={s.qrLabel}>{L.scanVerify}</Text>
+          <Text style={s.qrRef}>{application.application_number}</Text>
         </View>
 
         {/* Footer */}
-        <View style={commonStyles.footer}>
-          <Text style={commonStyles.footerText}>{t.footer}</Text>
-          <Text style={commonStyles.metadata}>
-            VERIFICATION ID: {application.id.toUpperCase()} | GENERATED ON: {new Date().toISOString()}
-          </Text>
+        <View style={s.footer}>
+          <Text style={s.footerText}>{L.footer}</Text>
+          <Text style={s.metadata}>{L.issued}: {formatDate(application.approved_at || application.created_at)}</Text>
         </View>
       </Page>
     </Document>

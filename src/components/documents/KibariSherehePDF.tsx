@@ -1,279 +1,150 @@
-// @ts-nocheck — dynamic form data rendering; fields vary by service type
+// @ts-nocheck
 /**
- * Kibari cha Matukio / Sherehe PDF
- * Event / Celebration Permit
- * 
- * Service: Kibari cha Matukio / Sherehe
+ * Kibari cha Matukio / Sherehe — Event / Celebration Permit
  */
 import React from 'react';
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
-import { DocumentPDFProps, commonStyles, generateQRCodeUrl, formatFullName, formatDate } from './types';
+import { DocumentPDFProps, commonStyles as s, generateQRCodeUrl, formatFullName, formatDate } from './types';
 import { TANZANIA_LOGO_BASE64 } from '@/constants/logo';
 
-// Additional styles for event permit
-const eventStyles = StyleSheet.create({
+const ls = StyleSheet.create({
   eventBanner: {
-    backgroundColor: '#ec4899',
-    padding: 15,
-    marginBottom: 20,
+    backgroundColor: '#7c3aed',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 14,
     alignItems: 'center',
-    borderRadius: 4,
   },
-  bannerText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-  },
-  eventName: {
-    color: '#ffffff',
-    fontSize: 12,
-    marginTop: 5,
-    fontStyle: 'italic',
-  },
-  infoCard: {
-    flexDirection: 'row',
-    backgroundColor: '#fdf2f8',
-    padding: 15,
-    marginVertical: 10,
-    borderRadius: 4,
-  },
-  infoIcon: {
-    width: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 15,
-  },
-  iconText: {
-    fontSize: 24,
-  },
-  infoContent: {
-    flex: 1,
-  },
-  infoTitle: {
-    fontSize: 10,
-    color: '#9d174d',
-    marginBottom: 3,
-  },
-  infoMain: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#1c1917',
-  },
-  infoSub: {
-    fontSize: 10,
-    color: '#57534e',
-    marginTop: 2,
-  },
+  bannerTitle: { color: '#ffffff', fontSize: 14, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 3 },
+  bannerSub:   { color: '#ede9fe', fontSize: 9, fontStyle: 'italic' },
   guestsBox: {
-    backgroundColor: '#fce7f3',
-    padding: 12,
+    backgroundColor: '#f5f3ff',
+    borderWidth: 2,
+    borderColor: '#7c3aed',
+    padding: 10,
     alignItems: 'center',
     marginVertical: 10,
-    borderWidth: 2,
-    borderColor: '#ec4899',
-    borderRadius: 4,
   },
-  guestsLabel: {
-    fontSize: 10,
-    color: '#9d174d',
-  },
-  guestsNumber: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#9d174d',
-  },
+  guestsNum: { fontSize: 22, fontWeight: 'bold', color: '#5b21b6' },
+  guestsLabel:{ fontSize: 8, color: '#6d28d9' },
 });
 
-export const KibariSherehePDF: React.FC<DocumentPDFProps> = ({ application, lang }) => {
+export const KibariSherehePDF: React.FC<DocumentPDFProps> = ({ application, lang, qrDataUrl }) => {
   const user = (application as any).users;
-  const formData = application.form_data as Record<string, unknown> || {};
-  const qrCodeUrl = generateQRCodeUrl(application, 'Kibari cha Matukio / Sherehe');
+  const fd   = (application.form_data || {}) as Record<string, unknown>;
+  const qr   = qrDataUrl || generateQRCodeUrl(application, 'KIB');
+  const sw   = lang === 'sw';
 
-  // Event type labels
-  const eventTypeLabels: Record<string, { sw: string; en: string }> = {
-    'HARUSI': { sw: 'Harusi', en: 'Wedding' },
-    'HITIMU': { sw: 'Hitimu', en: 'Graduation' },
-    'TAMASHA': { sw: 'Tamasha', en: 'Festival' },
-    'MKUTANO': { sw: 'Mkutano', en: 'Meeting' },
-    'NYINGINEZO': { sw: 'Nyinginezo', en: 'Other' },
+  const L = {
+    title:      sw ? 'KIBARI CHA MATUKIO / SHEREHE' : 'EVENT / CELEBRATION PERMIT',
+    eventInfo:  sw ? 'TAARIFA ZA TUKIO' : 'EVENT INFORMATION',
+    venueTime:  sw ? 'ENEO NA MUDA' : 'VENUE & TIME',
+    organiser:  sw ? 'MWANDAAJI / MAWASILIANO' : 'ORGANISER / CONTACT',
+    scanVerify: sw ? 'Changanua kuthibitisha' : 'Scan to verify',
+    footer:     sw ? 'Kibari hiki ni rasmi na lazima kionyeshwe wakati wote wa tukio.' : 'This permit is official and must be displayed throughout the event.',
+    issued:     sw ? 'Imetolewa' : 'Issued',
   };
 
-  const getEventTypeLabel = (type: string): string => {
-    const label = eventTypeLabels[type];
-    if (label) return lang === 'sw' ? label.sw : label.en;
-    return type;
+  const eventTypeLabels: Record<string, string> = {
+    HARUSI: sw ? 'Harusi' : 'Wedding', MAZIKO: sw ? 'Maziko' : 'Burial Ceremony',
+    BIRTHDAY: sw ? 'Siku ya Kuzaliwa' : 'Birthday', GRADUATION: sw ? 'Kuhitimu' : 'Graduation',
+    CULTURAL: sw ? 'Sherehe za Kitamaduni' : 'Cultural Event', RELIGIOUS: sw ? 'Ibada / Mkutano wa Dini' : 'Religious Gathering',
+    CONCERT: sw ? 'Tamasha' : 'Concert', CONFERENCE: sw ? 'Mkutano / Semina' : 'Conference / Seminar',
+    POLITICAL: sw ? 'Mkutano wa Kisiasa' : 'Political Rally', OTHER: sw ? 'Nyingine' : 'Other',
   };
 
-  // Event type emoji
-  const eventEmojis: Record<string, string> = {
-    'HARUSI': '💒',
-    'HITIMU': '🎓',
-    'TAMASHA': '🎉',
-    'MKUTANO': '🤝',
-    'NYINGINEZO': '📋',
-  };
+  const Row = ({ label, value }: { label: string; value?: unknown }) => (
+    <View style={s.infoRow}>
+      <Text style={s.infoLabel}>{label}:</Text>
+      <Text style={s.infoValue}>{String(value || 'N/A')}</Text>
+    </View>
+  );
 
-  const labels = {
-    sw: {
-      title: 'KIBALI CHA MATUKIO / SHEREHE',
-      permitApproved: 'KIBALI KIMEIDHINISHWA',
-      eventInfo: 'TAARIFA ZA TUKIO',
-      venueInfo: 'MAHALI NA MUDA',
-      contactInfo: 'MWASILIANO',
-      eventType: 'Aina ya Tukio',
-      eventName: 'Jina la Tukio',
-      venue: 'Ukumbi / Eneo',
-      date: 'Tarehe',
-      time: 'Muda',
-      guests: 'Wageni Wanaotarajiwa',
-      organizer: 'Msimamizi',
-      phone: 'Simu',
-      whatsapp: 'WhatsApp Group',
-      applicantName: 'Mwombaji',
-      nida: 'NIDA',
-      organizerSig: 'Sahihi ya Msimamizi',
-      officerSig: 'Afisa Mtendaji',
-      footer: 'Kibali hiki ni halali kwa tarehe na muda uliotajwa tu. Zingatia amani na utulivu.',
-    },
-    en: {
-      title: 'EVENT / CELEBRATION PERMIT',
-      permitApproved: 'PERMIT APPROVED',
-      eventInfo: 'EVENT INFORMATION',
-      venueInfo: 'VENUE AND TIME',
-      contactInfo: 'CONTACT INFORMATION',
-      eventType: 'Event Type',
-      eventName: 'Event Name',
-      venue: 'Venue',
-      date: 'Date',
-      time: 'Time',
-      guests: 'Expected Guests',
-      organizer: 'Organizer',
-      phone: 'Phone',
-      whatsapp: 'WhatsApp Group',
-      applicantName: 'Applicant',
-      nida: 'NIDA',
-      organizerSig: 'Organizer Signature',
-      officerSig: 'Executive Officer',
-      footer: 'This permit is valid only for the specified date and time. Maintain peace and order.',
-    }
-  };
-
-  const t = labels[lang];
-  const eventEmoji = eventEmojis[formData.event_type] || '📋';
+  const eventType = String(fd.event_type || '');
+  const eventLabel = eventTypeLabels[eventType] || eventType;
 
   return (
     <Document>
-      <Page size="A4" style={commonStyles.page}>
-        <Text style={commonStyles.watermark}>E-MTAA</Text>
+      <Page size="A4" style={s.page}>
+        <Text style={s.watermark}>E-MTAA</Text>
 
         {/* Header */}
-        <View style={commonStyles.header}>
-          <Image src={TANZANIA_LOGO_BASE64} style={commonStyles.logo} />
-          <Text style={commonStyles.country}>JAMHURI YA MUUNGANO WA TANZANIA</Text>
-          <Text style={commonStyles.office}>OFISI YA RAIS - TAMISEMI</Text>
-          <View style={commonStyles.divider} />
+        <View style={[s.header, { paddingLeft: 0 }]}>
+          <Image src={TANZANIA_LOGO_BASE64} style={s.logo} />
+          <Text style={s.country}>JAMHURI YA MUUNGANO WA TANZANIA</Text>
+          <Text style={s.office}>OFISI YA RAIS — TAMISEMI</Text>
+          <View style={s.divider} />
         </View>
 
         {/* Title */}
-        <Text style={commonStyles.title}>{t.title}</Text>
-
-        {/* Event Banner */}
-        <View style={eventStyles.eventBanner}>
-          <Text style={eventStyles.bannerText}>✓ {t.permitApproved}</Text>
-          <Text style={eventStyles.eventName}>{formData.event_name || 'N/A'}</Text>
+        <View style={s.titleBlock}>
+          <Text style={s.title}>{L.title}</Text>
+          <View style={s.appNumberBadge}><Text style={s.appNumberText}>{application.application_number}</Text></View>
         </View>
 
-        {/* Event Type Card */}
-        <View style={eventStyles.infoCard}>
-          <View style={eventStyles.infoIcon}>
-            <Text style={eventStyles.iconText}>{eventEmoji}</Text>
-          </View>
-          <View style={eventStyles.infoContent}>
-            <Text style={eventStyles.infoTitle}>{t.eventType}</Text>
-            <Text style={eventStyles.infoMain}>{getEventTypeLabel(formData.event_type)}</Text>
-            <Text style={eventStyles.infoSub}>{formData.event_name}</Text>
-          </View>
+        {/* Event banner */}
+        <View style={ls.eventBanner}>
+          <Text style={ls.bannerTitle}>{eventLabel || (sw ? 'TUKIO' : 'EVENT')}</Text>
+          {fd.event_name && <Text style={ls.bannerSub}>{String(fd.event_name)}</Text>}
         </View>
 
-        {/* Venue and Time Card */}
-        <View style={eventStyles.infoCard}>
-          <View style={eventStyles.infoIcon}>
-            <Text style={eventStyles.iconText}>📍</Text>
-          </View>
-          <View style={eventStyles.infoContent}>
-            <Text style={eventStyles.infoTitle}>{t.venue}</Text>
-            <Text style={eventStyles.infoMain}>{formData.venue || 'N/A'}</Text>
-            <Text style={eventStyles.infoSub}>
-              {formatDate(formData.start_date)} | {formData.start_time || 'N/A'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Expected Guests */}
-        <View style={eventStyles.guestsBox}>
-          <Text style={eventStyles.guestsLabel}>{t.guests}</Text>
-          <Text style={eventStyles.guestsNumber}>{formData.expected_guests || '0'}</Text>
-        </View>
-
-        {/* Contact Information */}
-        <View style={commonStyles.sectionHeader}>
-          <Text style={commonStyles.sectionTitle}>{t.contactInfo}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.applicantName}:</Text>
-          <Text style={commonStyles.infoValue}>{formatFullName(user)}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.nida}:</Text>
-          <Text style={commonStyles.infoValue}>{user?.nida_number || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.organizer}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.contact_person || 'N/A'}</Text>
-        </View>
-
-        <View style={commonStyles.infoRow}>
-          <Text style={commonStyles.infoLabel}>{t.phone}:</Text>
-          <Text style={commonStyles.infoValue}>{formData.contact_phone || 'N/A'}</Text>
-        </View>
-
-        {formData.whatsapp_group && (
-          <View style={commonStyles.infoRow}>
-            <Text style={commonStyles.infoLabel}>{t.whatsapp}:</Text>
-            <Text style={commonStyles.infoValue}>{formData.whatsapp_group}</Text>
+        {/* Guests box */}
+        {fd.expected_guests && (
+          <View style={ls.guestsBox}>
+            <Text style={ls.guestsNum}>{String(fd.expected_guests)}</Text>
+            <Text style={ls.guestsLabel}>{sw ? 'WAGENI WANAOTARAJIWA' : 'EXPECTED GUESTS'}</Text>
           </View>
         )}
 
-        {/* Signatures */}
-        <View style={commonStyles.signatureSection}>
-          <View style={commonStyles.signatureBox}>
-            <View style={commonStyles.signatureLine} />
-            <Text style={commonStyles.signatureName}>{formData.contact_person || formatFullName(user)}</Text>
-            <Text style={commonStyles.signatureTitle}>{t.organizerSig}</Text>
+        {/* Applicant info */}
+        <View style={s.sectionHeader}><Text style={s.sectionTitle}>{sw ? 'MWOMBAJI' : 'APPLICANT'}</Text></View>
+        <Row label={sw ? 'Jina Kamili' : 'Full Name'}  value={formatFullName(user)} />
+        <Row label={sw ? 'NIDA' : 'NIDA No.'}          value={user?.nida_number} />
+        <Row label={sw ? 'Namba ya Raia' : 'Citizen ID'} value={user?.citizen_id} />
+
+        {/* Venue & time */}
+        <View style={s.sectionHeader}><Text style={s.sectionTitle}>{L.venueTime}</Text></View>
+        <View style={s.twoCol}>
+          <View style={s.colLeft}>
+            <Row label={sw ? 'Tarehe ya Kuanza' : 'Start Date'} value={fd.start_date ? formatDate(String(fd.start_date)) : undefined} />
+            <Row label={sw ? 'Muda wa Kuanza' : 'Start Time'}   value={fd.start_time} />
           </View>
-          <View style={[commonStyles.signatureBox, { textAlign: 'right', alignItems: 'flex-end' }]}>
-            <View style={commonStyles.signatureLine} />
-            <Text style={commonStyles.signatureName}>{t.officerSig.toUpperCase()}</Text>
-            <Text style={commonStyles.signatureTitle}>{lang === 'sw' ? 'Sahihi na Muhuri' : 'Signature & Stamp'}</Text>
+          <View style={s.colRight}>
+            <Row label={sw ? 'Eneo la Tukio' : 'Venue'}         value={fd.venue} />
           </View>
         </View>
 
-        {/* QR Code */}
-        <View style={commonStyles.qrSection}>
-          <Image src={qrCodeUrl} style={commonStyles.qrCode} />
-          <Text style={commonStyles.qrLabel}>{application.application_number}</Text>
+        {/* Organiser / contact */}
+        <View style={s.sectionHeader}><Text style={s.sectionTitle}>{L.organiser}</Text></View>
+        <Row label={sw ? 'Mwasiliano' : 'Contact Person'} value={fd.contact_person} />
+        <Row label={sw ? 'Simu' : 'Phone'}                value={fd.contact_phone} />
+        {fd.whatsapp_group && <Row label="WhatsApp" value={fd.whatsapp_group} />}
+
+        {/* Signatures */}
+        <View style={s.signatureSection}>
+          <View style={s.signatureBox}>
+            <View style={s.signatureLine} />
+            <Text style={s.signatureName}>{formatFullName(user)}</Text>
+            <Text style={s.signatureTitle}>{sw ? 'MWANDAAJI / MWOMBAJI' : 'ORGANISER / APPLICANT'}</Text>
+          </View>
+          <View style={s.signatureBox}>
+            <View style={s.stampBox}><Text style={s.stampText}>MUHURI{'\n'}STAMP</Text></View>
+            <View style={s.signatureLine} />
+            <Text style={s.signatureTitle}>{sw ? 'AFISA MTENDAJI WA MTAA' : 'WARD EXECUTIVE OFFICER'}</Text>
+          </View>
+        </View>
+
+        {/* QR */}
+        <View style={s.qrSection}>
+          <View style={s.qrBorder}><Image src={qr} style={s.qrCode} /></View>
+          <Text style={s.qrLabel}>{L.scanVerify}</Text>
+          <Text style={s.qrRef}>{application.application_number}</Text>
         </View>
 
         {/* Footer */}
-        <View style={commonStyles.footer}>
-          <Text style={commonStyles.footerText}>{t.footer}</Text>
-          <Text style={commonStyles.metadata}>
-            VERIFICATION ID: {application.id.toUpperCase()} | GENERATED ON: {new Date().toISOString()}
-          </Text>
+        <View style={s.footer}>
+          <Text style={s.footerText}>{L.footer}</Text>
+          <Text style={s.metadata}>{L.issued}: {formatDate(application.approved_at || application.created_at)}</Text>
         </View>
       </Page>
     </Document>
