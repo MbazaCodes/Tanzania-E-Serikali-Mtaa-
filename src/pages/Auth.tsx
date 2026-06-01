@@ -411,8 +411,8 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
           p_nationality: regForm.nationality === 'Mtanzania' ? 'Tanzanian' : 'Foreigner',
           p_country_of_citizenship: regForm.nationality === 'Mtanzania' ? 'Tanzania' : regForm.countryOfCitizenship,
           p_nida_number: regForm.hasNida ? regForm.nidaNumber.replace(/-/g, '') : null,
-          p_id_type: regForm.idType || null,
-          p_id_number: regForm.idNumber || null,
+          p_id_type: !regForm.hasNida ? (regForm.idType || null) : null,
+          p_id_number: !regForm.hasNida ? (regForm.idNumber || null) : null,
           p_region: regForm.region || null,
           p_district: regForm.district || null,
           p_ward: regForm.ward || null,
@@ -825,12 +825,12 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                           </div>
                         )}
 
-                        {/* ID Type & ID Number — always visible */}
+                        {/* ID Type & ID Number — only when no NIDA */}
+                        {!regForm.hasNida && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
-                              {lang === 'sw' ? 'Aina ya Kitambulisho' : 'ID Type'}
-                              {!regForm.hasNida && <span className="text-red-400 ml-0.5">*</span>}
+                              {lang === 'sw' ? 'Aina ya Kitambulisho' : 'ID Type'} <span className="text-red-400 ml-0.5">*</span>
                             </label>
                             <select
                               value={regForm.idType}
@@ -862,6 +862,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                             />
                           </div>
                         </div>
+                        )}
 
                         {/* Phone number — collected early in Step 1 */}
                         <div className="space-y-2">
