@@ -237,7 +237,7 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
         supabase.from('applications').select('*', { count: 'exact', head: true }).in('status', ['approved', 'issued']),
         supabase.from('applications').select('*', { count: 'exact', head: true }).in('status', ['submitted', 'paid']),
         supabase.from('applications').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
-        supabase.from('applications').select('*', { count: 'exact', head: true }).in('status', ['in_progress', 'verified']),
+        supabase.from('applications').select('*', { count: 'exact', head: true }).in('status', ['pending_review', 'pending_payment', 'paid', 'verified']),
         supabase.from('applications').select('form_data, service_id').in('status', ['paid', 'issued', 'verified', 'approved']),
         supabase.from('applications').select('form_data, service_id').in('status', ['paid', 'issued', 'verified', 'approved']).gte('created_at', new Date().toISOString().split('T')[0]),
         supabase.from('applications').select('form_data, service_id').in('status', ['paid', 'issued', 'verified', 'approved']).gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
