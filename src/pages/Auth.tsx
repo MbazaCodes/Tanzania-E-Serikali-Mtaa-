@@ -356,68 +356,71 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
     setLoading(true);
 
     try {
-      // Check if email already exists in our users table
-      const { data: existingEmail } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', regForm.email)
-        .maybeSingle();
-
-      if (existingEmail) {
+      // Check if email already exists (uses SECURITY DEFINER — works without session)
+      const { data: emailExists } = await supabase.rpc('check_email_exists', { p_email: regForm.email });
+      if (emailExists) {
         throw new Error(lang === 'sw' ? "Barua pepe hii tayari imeshasajiliwa. Tafadhali ingia." : "This email is already registered. Please login.");
       }
 
-      // Check if NIDA already exists (only for Tanzanians with NIDA)
+      // Check if NIDA already exists
       if (regForm.nationality === 'Mtanzania' && regForm.hasNida && regForm.nidaNumber) {
         const cleanNida = regForm.nidaNumber.replace(/-/g, '');
-        const { data: existingNida } = await supabase
-          .from('users')
-          .select('id')
-          .eq('nida_number', cleanNida)
-          .maybeSingle();
-
-        if (existingNida) {
+        const { data: nidaExists } = await supabase.rpc('check_nida_exists', { p_nida: cleanNida });
+        if (nidaExists) {
           throw new Error(lang === 'sw' ? "Namba hii ya NIDA tayari imeshasajiliwa." : "This NIDA number is already registered.");
         }
       }
 
-      const { data, error } = await supabase.auth.signUp({ 
+      // Create auth user (with 20s timeout)
+      const signUpPromise = supabase.auth.signUp({ 
         email: regForm.email, 
         password: regForm.password 
       });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(
+          lang === 'sw'
+            ? 'Muda wa kusubiri umeisha. Tafadhali jaribu tena.'
+            : 'Request timed out. Please try again.'
+        )), 20000)
+      );
+      const { data, error } = await Promise.race([signUpPromise, timeoutPromise]);
 
       if (error) throw error;
 
       if (data.user) {
         const isDiaspora = regForm.country !== 'Tanzania';
-        const { error: profileError } = await supabase.from('users').insert({
-          id: data.user.id,
-          first_name: regForm.firstName.toUpperCase(),
-          middle_name: regForm.middleName.toUpperCase(),
-          last_name: regForm.lastName.toUpperCase(),
-          email: regForm.email,
-          phone: regForm.phone ? regForm.phone.replace(/[\s\-().]/g, '') : null,
-          sex: regForm.sex,
-          gender: regForm.sex,
-          date_of_birth: regForm.dateOfBirth || null,
-          place_of_birth: regForm.placeOfBirth ? regForm.placeOfBirth.toUpperCase() : null,
-          marital_status: regForm.maritalStatus || null,
-          occupation: regForm.occupation || null,
-          education_level: regForm.educationLevel || null,
-          nationality: regForm.nationality === 'Mtanzania' ? 'Tanzanian' : 'Foreigner',
-          country_of_citizenship: regForm.nationality === 'Mtanzania' ? 'Tanzania' : regForm.countryOfCitizenship,
-          nida_number: regForm.hasNida ? regForm.nidaNumber.replace(/-/g, '') : null,
-          id_type: regForm.idType || null,
-          id_number: regForm.idNumber || null,
-          region: regForm.region,
-          district: regForm.district,
-          ward: regForm.ward,
-          street: regForm.street,
-          is_diaspora: isDiaspora,
-          country_of_residence: regForm.country,
-          passport_number: regForm.passportNumber,
-          role: 'citizen',
-          is_verified: nidaVerified || isDiaspora || regForm.nationality === 'Mwingine'
+
+        // Create profile via SECURITY DEFINER RPC — bypasses RLS.
+        // This is needed because signUp with email confirmation does NOT
+        // establish a session, so auth.uid() is NULL and a direct INSERT
+        // would be blocked by the "auth.uid() = id" policy.
+        const { error: profileError } = await supabase.rpc('create_citizen_profile', {
+          p_id: data.user.id,
+          p_first_name: regForm.firstName.toUpperCase(),
+          p_middle_name: regForm.middleName.toUpperCase() || null,
+          p_last_name: regForm.lastName.toUpperCase(),
+          p_email: regForm.email,
+          p_phone: regForm.phone ? regForm.phone.replace(/[\s\-().]/g, '') : null,
+          p_sex: regForm.sex,
+          p_gender: regForm.sex,
+          p_date_of_birth: regForm.dateOfBirth || null,
+          p_place_of_birth: regForm.placeOfBirth ? regForm.placeOfBirth.toUpperCase() : null,
+          p_marital_status: regForm.maritalStatus || null,
+          p_occupation: regForm.occupation || null,
+          p_education_level: regForm.educationLevel || null,
+          p_nationality: regForm.nationality === 'Mtanzania' ? 'Tanzanian' : 'Foreigner',
+          p_country_of_citizenship: regForm.nationality === 'Mtanzania' ? 'Tanzania' : regForm.countryOfCitizenship,
+          p_nida_number: regForm.hasNida ? regForm.nidaNumber.replace(/-/g, '') : null,
+          p_id_type: regForm.idType || null,
+          p_id_number: regForm.idNumber || null,
+          p_region: regForm.region || null,
+          p_district: regForm.district || null,
+          p_ward: regForm.ward || null,
+          p_street: regForm.street || null,
+          p_is_diaspora: isDiaspora,
+          p_country_of_residence: regForm.country || null,
+          p_passport_number: regForm.passportNumber || null,
+          p_is_verified: nidaVerified || isDiaspora || regForm.nationality === 'Mwingine'
         });
 
         if (profileError) {
