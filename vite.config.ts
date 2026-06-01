@@ -19,7 +19,7 @@ export default defineConfig({
     include: ['buffer', '@react-pdf/renderer'],
   },
   server: {
-    port: 3000,
+    port: 5173,
     open: true,
   },
 });
