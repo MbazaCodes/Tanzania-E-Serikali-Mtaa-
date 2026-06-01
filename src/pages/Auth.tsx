@@ -151,17 +151,29 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       );
       (unreachableError as any).__isTimeout = true;
 
+      console.log('[Auth Debug] Starting signInWithPassword for email:', email);
+      console.log('[Auth Debug] Timeout: 20s');
+      
       const { data, error } = await Promise.race([
         supabase.auth.signInWithPassword({ email, password }),
         new Promise<never>((_, reject) =>
-          setTimeout(() => reject(unreachableError), 20000)
+          setTimeout(() => {
+            console.error('[Auth Debug] TIMEOUT: 20s exceeded');
+            reject(unreachableError);
+          }, 20000)
         ),
       ]);
 
       // --- Handle auth response ---
+      console.log('[Auth Debug] Got response - data:', !!data, 'error:', !!error);
 
       if (error) {
-        console.error('Supabase auth error:', (error as { message?: string; status?: number }).message, (error as { status?: number }).status);
+        console.error('[Auth Debug] Supabase error details:', {
+          message: (error as { message?: string; status?: number }).message,
+          status: (error as { status?: number }).status,
+          code: (error as any).code,
+          fullError: error
+        });
         // 404/503/0 = project paused or infrastructure down
         if (error.status === 503 || error.status === 0) {
           throw unreachableError;
@@ -231,12 +243,18 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       onClose();
     } catch (err: unknown) {
       const _e = err as { message?: string };
-      console.error('Login error:', err);
+      console.error('[Auth Debug] Login catch block - Full error:', err);
+      console.error('[Auth Debug] Error message:', _e.message);
+      console.error('[Auth Debug] Error is timeout?', !!(err as any).__isTimeout);
+      
       const isTimeout = !!(err as any).__isTimeout;
       const isNetworkError = isTimeout
         || _e.message?.includes('Failed to fetch')
         || _e.message?.includes('NetworkError')
         || _e.message?.includes('ERR_NAME_NOT_RESOLVED');
+      
+      console.log('[Auth Debug] isTimeout:', isTimeout, 'isNetworkError:', isNetworkError);
+      
       if (isNetworkError) {
         showToast(
           lang === 'sw'

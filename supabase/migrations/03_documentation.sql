@@ -428,3 +428,43 @@ GRANT EXECUTE ON FUNCTION get_database_summary() TO authenticated;
 
 -- Sample 7: Get all services with their field counts
 -- SELECT * FROM v_services_documentation;
+
+-- =====================================================
+-- Make user an admin
+-- User: mbazzacodes@gmail.com
+-- UID: bd83efe0-3ed8-4461-89f4-4130e7439b5c
+-- Date: 2026-06-01
+-- =====================================================
+
+-- Method 1: Update by email
+UPDATE public.users 
+SET role = 'admin'::user_role
+WHERE email = 'mbazzacodes@gmail.com';
+
+-- Method 2: Update by UID (most direct)
+UPDATE public.users 
+SET role = 'admin'::user_role
+WHERE id = 'bd83efe0-3ed8-4461-89f4-4130e7439b5c';
+
+-- Method 3: Update both conditions (safest - ensures correct user)
+UPDATE public.users 
+SET 
+    role = 'admin'::user_role,
+    is_verified = TRUE,
+    updated_at = NOW()
+WHERE email = 'mbazzacodes@gmail.com' 
+  AND id = 'bd83efe0-3ed8-4461-89f4-4130e7439b5c';
+
+-- =====================================================
+-- Verify the update was successful
+-- =====================================================
+SELECT 
+    id,
+    email,
+    first_name,
+    last_name,
+    role,
+    is_verified,
+    created_at
+FROM public.users 
+WHERE email = 'mbazzacodes@gmail.com';

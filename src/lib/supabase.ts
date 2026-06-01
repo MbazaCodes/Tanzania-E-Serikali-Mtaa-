@@ -21,6 +21,19 @@ if (typeof window !== 'undefined') {
       'VITE_SUPABASE_ANON_KEY, then FULLY restart the dev server (Ctrl+C, npm run dev).'
     );
   }
+  // Masked debug: reveal only whether keys are present and a short preview.
+  try {
+    // Only run in browser environment to avoid leaking in server logs.
+    if (typeof window !== 'undefined') {
+      const anonPreview = supabaseAnonKey && supabaseAnonKey.length > 12
+        ? `${supabaseAnonKey.slice(0, 6)}...${supabaseAnonKey.slice(-6)}`
+        : supabaseAnonKey;
+      // eslint-disable-next-line no-console
+      console.debug('Supabase config:', { supabaseUrl, anonKeyLoaded: !!supabaseAnonKey, anonKeyPreview: anonPreview });
+    }
+  } catch (e) {
+    // ignore
+  }
 }
 
 // Client is always created so imports don't fail at module load time.
