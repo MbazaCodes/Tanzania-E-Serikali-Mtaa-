@@ -191,15 +191,18 @@ BEGIN
     DROP POLICY IF EXISTS "Public can view approved registrations" ON business_registrations;
     
     -- Recreate with safe functions
-    CREATE POLICY "Staff can view all registrations"
+    DROP POLICY IF EXISTS "Staff can view all registrations" ON business_registrations;
+CREATE POLICY "Staff can view all registrations"
         ON business_registrations FOR SELECT
         USING (public.is_admin_or_staff());
     
-    CREATE POLICY "Staff can update registrations"
+    DROP POLICY IF EXISTS "Staff can update registrations" ON business_registrations;
+CREATE POLICY "Staff can update registrations"
         ON business_registrations FOR UPDATE
         USING (public.is_admin_or_staff());
     
-    CREATE POLICY "Public can view approved registrations"
+    DROP POLICY IF EXISTS "Public can view approved registrations" ON business_registrations;
+CREATE POLICY "Public can view approved registrations"
         ON business_registrations FOR SELECT
         USING (status = 'approved');
 END $$;
@@ -308,11 +311,13 @@ CREATE INDEX IF NOT EXISTS idx_status_history_changed_at ON application_status_h
 ALTER TABLE application_status_history ENABLE ROW LEVEL SECURITY;
 
 -- Policy for status history
+DROP POLICY IF EXISTS "Users can view own app status history" ON application_status_history;
 CREATE POLICY "Users can view own app status history" ON application_status_history
     FOR SELECT USING (
         EXISTS (SELECT 1 FROM applications WHERE id = application_id AND user_id = auth.uid())
     );
 
+DROP POLICY IF EXISTS "Staff can view all status history" ON application_status_history;
 CREATE POLICY "Staff can view all status history" ON application_status_history
     FOR SELECT USING (public.is_admin_or_staff());
 
