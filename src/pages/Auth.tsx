@@ -60,7 +60,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
   const [nidaError, setNidaError] = useState<string | null>(null);
 
   const [regForm, setRegForm] = useState({
-    firstName: "", middleName: "", lastName: "", sex: "Me", nationality: "Mtanzania", nidaNumber: "",
+    firstName: "", middleName: "", lastName: "", sex: "M", nationality: "Mtanzania", nidaNumber: "",
     country: isDiaspora ? "" : "Tanzania", region: "", district: "", ward: "", street: "", phone: "", email: "", password: "", confirmPassword: "",
     lat: null as number | null, lng: null as number | null,
     isDiaspora: isDiaspora, countryOfResidence: "", passportNumber: "", countryOfCitizenship: "Tanzania",
@@ -112,13 +112,9 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       }
 
       setNidaVerified(true);
-      setRegForm(prev => ({
-        ...prev,
-        firstName: "JUMA",
-        middleName: "ABDALLAH",
-        lastName: "MSUYA",
-        sex: "Me"
-      }));
+      // NOTE: In production, replace this with a real NIDA API call.
+      // The API response should return verified name fields to pre-fill below.
+      // setRegForm(prev => ({ ...prev, firstName: res.first_name, ... }));
     } catch (err: any) {
       setNidaError(err.message);
     } finally {
