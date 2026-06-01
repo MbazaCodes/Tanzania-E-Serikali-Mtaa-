@@ -231,7 +231,7 @@ BEGIN
         SELECT 1 FROM pg_constraint WHERE conname = 'users_phone_check'
     ) THEN
         ALTER TABLE users ADD CONSTRAINT users_phone_check 
-        CHECK (phone IS NULL OR phone ~ '^[0-9]{10,15}$');
+        CHECK (phone IS NULL OR phone ~ '^[+]?[0-9][0-9\s\-]{7,19}$');
     END IF;
 EXCEPTION WHEN OTHERS THEN NULL;
 END $$;

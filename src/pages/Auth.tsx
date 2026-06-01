@@ -363,7 +363,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
           middle_name: regForm.middleName.toUpperCase(),
           last_name: regForm.lastName.toUpperCase(),
           email: regForm.email,
-          phone: regForm.phone,
+          phone: regForm.phone ? regForm.phone.replace(/[\s\-().]/g, '') : null,
           sex: regForm.sex,
           gender: regForm.sex,
           nationality: regForm.nationality === 'Mtanzania' ? 'Tanzanian' : 'Foreigner',
