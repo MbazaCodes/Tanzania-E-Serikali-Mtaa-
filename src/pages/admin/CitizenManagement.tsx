@@ -154,7 +154,7 @@ export function CitizenManagement() {
       
       // Refresh citizens list to show updated data
       fetchCitizens();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error approving change:', error);
       showToast(error.message || (lang === 'sw' ? 'Hitilafu kuidhinisha' : 'Error approving change'), 'error');
     }
@@ -175,7 +175,7 @@ export function CitizenManagement() {
 
       setPendingChanges(prev => prev.filter(c => c.id !== change.id));
       showToast(lang === 'sw' ? 'Mabadiliko yamekataliwa' : 'Change rejected', 'info');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error rejecting change:', error);
       showToast(error.message || (lang === 'sw' ? 'Hitilafu kukataa' : 'Error rejecting change'), 'error');
     }
@@ -234,7 +234,7 @@ export function CitizenManagement() {
       if (error) throw error;
       setCitizens(prev => prev.map(c => c.id === citizenId ? { ...c, is_verified: true } : c));
       showToast(lang === 'sw' ? 'Mwananchi amethibitishwa.' : 'Citizen verified successfully.', 'success');
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast(error.message, 'error');
     }
   };
@@ -254,7 +254,7 @@ export function CitizenManagement() {
       setShowDetailsModal(false);
       setSelectedCitizen(null);
       showToast(lang === 'sw' ? 'Uhakiki umekataliwa.' : 'Verification declined.', 'info');
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast(error.message, 'error');
     }
   };
@@ -283,7 +283,7 @@ export function CitizenManagement() {
       if (!isConfigured) {
         // Demo mode - update localStorage
         const demoCitizens = JSON.parse(localStorage.getItem('demo_citizens') || '[]');
-        const updated = demoCitizens.map((c: any) => 
+        const updated = demoCitizens.map((c: import('@/lib/supabase').UserProfile) => 
           c.id === selectedCitizen.id ? { ...c, ...editFormData } : c
         );
         localStorage.setItem('demo_citizens', JSON.stringify(updated));
@@ -316,7 +316,7 @@ export function CitizenManagement() {
       setSelectedCitizen({ ...selectedCitizen, ...editFormData });
       setEditingInfo(false);
       showToast(lang === 'sw' ? 'Taarifa zimesasishwa' : 'Information updated successfully', 'success');
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(err.message, 'error');
     } finally {
       setUpdating(false);
@@ -331,7 +331,7 @@ export function CitizenManagement() {
 
       if (!isConfigured) {
         const demoCitizens = JSON.parse(localStorage.getItem('demo_citizens') || '[]');
-        const updated = demoCitizens.filter((c: any) => c.id !== citizenId);
+        const updated = demoCitizens.filter((c: import('@/lib/supabase').UserProfile) => c.id !== citizenId);
         localStorage.setItem('demo_citizens', JSON.stringify(updated));
         setCitizens(prev => prev.filter(c => c.id !== citizenId));
         setShowDetailsModal(false);
@@ -351,7 +351,7 @@ export function CitizenManagement() {
       setShowDetailsModal(false);
       setSelectedCitizen(null);
       showToast(lang === 'sw' ? 'Mwananchi amefutwa' : 'Citizen deleted', 'success');
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(err.message, 'error');
     }
   };

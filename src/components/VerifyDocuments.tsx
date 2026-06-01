@@ -105,7 +105,7 @@ export function VerifyDocuments({
   const [verificationStatus, setVerificationStatus] = useState<
     "pending" | "verified" | "invalid" | null
   >(null);
-  const [verifiedDocument, setVerifiedDocument] = useState<any>(null);
+  const [verifiedDocument, setVerifiedDocument] = useState<import('@/lib/supabase').Application | null>(null);
 
   const handleVerify = async () => {
     if (!qrInput.trim()) return;
@@ -139,7 +139,7 @@ export function VerifyDocuments({
   const verifyEMtaaApplication = async () => {
     // First try demo applications from localStorage
     const demoApps = JSON.parse(localStorage.getItem('demo_applications') || '[]');
-    const demoApp = demoApps.find((app: any) => 
+    const demoApp = demoApps.find((app: import('@/lib/supabase').Application) => 
       app.application_number?.toUpperCase() === qrInput.trim().toUpperCase()
     );
     

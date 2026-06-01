@@ -15,10 +15,10 @@ import { ReceiptPDF } from '../components/ReceiptPDF';
 
 interface ApplicationsProps {
   applications: Application[];
-  drafts?: any[];
+  drafts?: ApplicationDraft[];
   onPay: (app: Application) => void;
   onRefresh?: () => void;
-  onResumeDraft?: (draft: any) => void;
+  onResumeDraft?: (draft: ApplicationDraft) => void;
 }
 
 export function Applications({ applications, drafts = [], onPay, onRefresh, onResumeDraft }: ApplicationsProps) {
@@ -111,7 +111,7 @@ export function Applications({ applications, drafts = [], onPay, onRefresh, onRe
     try {
       const isBuyer = (app as any).services?.name?.includes('Mauziano') && app.form_data.buyer_nida === user.nida_number;
       const isTenant = (app as any).services?.name?.includes('PANGISHA') && app.form_data.tenant_nida === user.nida_number;
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
       if (isBuyer) updateData.buyer_accepted = true;
       if (isTenant) updateData.tenant_accepted = true;
       const { error } = await supabase.from('applications').update(updateData).eq('id', app.id);
@@ -446,7 +446,7 @@ export function Applications({ applications, drafts = [], onPay, onRefresh, onRe
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-stone-600">
                       <div><span className="font-semibold">{lang === 'sw' ? 'Iliyoanzishwa:' : 'Started:'}</span> {new Date(draft.last_saved).toLocaleDateString()}</div>
                       <div><span className="font-semibold">{lang === 'sw' ? 'Hatua ya Mwisho:' : 'Last Step:'}</span> {draft.current_step || 'draft'}</div>
-                      <div><span className="font-semibold">{lang === 'sw' ? 'Sehemu Zilizojazwa:' : 'Progress:'}</span> {Object.values(draft.form_data || {}).filter((v: any) => v).length} {lang === 'sw' ? 'sehemu' : 'fields'}</div>
+                      <div><span className="font-semibold">{lang === 'sw' ? 'Sehemu Zilizojazwa:' : 'Progress:'}</span> {Object.values(draft.form_data || {}).filter((v: unknown) => !!v).length} {lang === 'sw' ? 'sehemu' : 'fields'}</div>
                     </div>
                   </div>
                   <div className="flex gap-2">

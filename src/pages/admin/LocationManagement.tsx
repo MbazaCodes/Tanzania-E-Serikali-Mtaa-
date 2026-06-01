@@ -263,7 +263,7 @@ export function LocationManagement() {
 
       resetForm();
       await fetchLocations();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving location:', error);
       showToast(
         error.message || (lang === 'sw' ? 'Hitilafu ya kuhifadhi' : 'Error saving location'),
@@ -309,7 +309,7 @@ export function LocationManagement() {
         'success'
       );
       await fetchLocations();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting location:', error);
       showToast(
         error.message || (lang === 'sw' ? 'Hitilafu ya kufuta' : 'Error deleting location'),

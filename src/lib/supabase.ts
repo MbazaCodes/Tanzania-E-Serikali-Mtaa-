@@ -1,4 +1,5 @@
 import { createClient, Session as SupabaseSession } from '@supabase/supabase-js';
+import type { AnyFormData, PaymentData, FormField, ApplicationStatus } from '@/types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key';
@@ -17,10 +18,10 @@ export interface Service {
   description?: string;
   description_en?: string;
   fee: number;
-  form_schema: any;
-  diaspora_form_schema?: any;
+  form_schema: FormField[];
+  diaspora_form_schema?: FormField[];
   validity_months?: number;
-  document_template?: any;
+  document_template?: Record<string, unknown>;
   extra_address_fee?: number;
   active?: boolean;  // matches DB column name
   created_at: string;
@@ -127,13 +128,13 @@ export interface Application {
   service_id: string;
   service_name: string;
   application_number: string;
-  status: string;
+  status: ApplicationStatus;
   created_at: string;
   updated_at?: string;
   approved_at?: string;
   paid_at?: string;
   issued_at?: string;
-  form_data: any;
+  form_data: AnyFormData;
   feedback?: string;
   buyer_accepted?: boolean;
   tenant_accepted?: boolean;
@@ -146,8 +147,8 @@ export interface Application {
   target_user_nida?: string;
   target_user_role?: string;
   agreement_status?: string;
-  payment_data?: any;
-  confirmation_data?: any;
+  payment_data?: PaymentData;
+  confirmation_data?: Record<string, unknown>;
   is_confirmed?: boolean;
   approved_by?: string;
   rejected_by?: string;

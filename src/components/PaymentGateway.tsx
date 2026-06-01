@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import type { PaymentResult } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CreditCard, 
@@ -19,7 +20,7 @@ import { formatCurrency, CurrencyCode } from '@/lib/currency';
 interface PaymentGatewayProps {
   amount: number;
   applicationId: string;
-  onSuccess: (paymentData: any) => void;
+  onSuccess: (paymentData: PaymentResult) => void;
   onCancel: () => void;
   lang: Language;
   currency: CurrencyCode;
@@ -50,7 +51,7 @@ export const PaymentGateway: React.FC<PaymentGatewayProps> = ({
     cvv: '',
     name: ''
   });
-  const [paymentResult, setPaymentResult] = useState<any>(null);
+  const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
 
   const handlePayment = async () => {
     setStep('processing');

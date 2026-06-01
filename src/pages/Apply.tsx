@@ -1,4 +1,5 @@
 import React from 'react';
+import type { AnyFormData, ApplicationDraft } from '@/types';
 import { motion } from 'framer-motion';
 import { ArrowLeft, CreditCard } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -12,8 +13,8 @@ import { SERVICE_FORMS, hasServiceForm } from '@/components/forms';
 interface ApplyProps {
   selectedService: Service;
   onBack: () => void;
-  onSubmit: (formData: any) => void;
-  draft?: any;
+  onSubmit: (formData: AnyFormData) => void;
+  draft?: ApplicationDraft | null;
 }
 
 export function Apply({ selectedService, onBack, onSubmit, draft }: ApplyProps) {

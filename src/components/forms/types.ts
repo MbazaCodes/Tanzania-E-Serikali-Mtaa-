@@ -1,9 +1,10 @@
 import { UserProfile } from '@/lib/supabase';
+import type { AnyFormData } from '@/types';
 
 export type FormLanguage = 'sw' | 'en';
 
 export interface FormProps {
-  onSubmit: (data: any, files?: File[], signature?: string) => Promise<void> | void;
+  onSubmit: (data: AnyFormData, files?: File[], signature?: string) => Promise<void> | void;
   isLoading?: boolean;
   lang?: FormLanguage;
   userProfile?: UserProfile | null;

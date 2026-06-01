@@ -51,7 +51,7 @@ export function StaffDashboard({ setView }: StaffDashboardProps) {
         const demoApps = JSON.parse(localStorage.getItem('demo_applications') || '[]');
         
         // Filter by location if staff has assigned region/district
-        const filteredApps = demoApps.filter((app: any) => {
+        const filteredApps = demoApps.filter((app: Application) => {
           if (['staff', 'admin'].includes(user?.role || '')) {
             if (user?.assigned_district && app.district !== user.assigned_district) return false;
             if (user?.assigned_region && app.region !== user.assigned_region) return false;
@@ -60,14 +60,14 @@ export function StaffDashboard({ setView }: StaffDashboardProps) {
         });
 
         setStats({
-          pending: filteredApps.filter((a: any) => a.status === 'submitted').length,
-          paid: filteredApps.filter((a: any) => a.status === 'paid').length,
-          returned: filteredApps.filter((a: any) => a.status === 'returned').length,
-          approved: filteredApps.filter((a: any) => a.status === 'approved' || a.status === 'issued').length,
+          pending: filteredApps.filter((a: import('@/lib/supabase').Application) => a.status === 'submitted').length,
+          paid: filteredApps.filter((a: import('@/lib/supabase').Application) => a.status === 'paid').length,
+          returned: filteredApps.filter((a: import('@/lib/supabase').Application) => a.status === 'returned').length,
+          approved: filteredApps.filter((a: import('@/lib/supabase').Application) => a.status === 'approved' || a.status === 'issued').length,
           total: filteredApps.length
         });
 
-        setApplications(filteredApps.slice(0, 10).map((app: any) => ({
+        setApplications(filteredApps.slice(0, 10).map((app: Application) => ({
           ...app,
           services: { name: app.service_name || 'Service' },
           users: { first_name: 'Demo', last_name: 'User' } // Mock user data for demo

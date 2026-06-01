@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, Application, UserProfile } from '@/lib/supabase';
+import type { ApplicationDraft } from '@/types';
 import { IS_SUPABASE_CONFIGURED } from '@/lib/config';
 import { HARDCODED_SERVICES } from '@/constants/services';
 
@@ -9,7 +10,7 @@ const getServiceById = (serviceId: string) => {
 
 export function useApplications(user: UserProfile | null) {
   const [applications, setApplications] = useState<Application[]>([]);
-  const [drafts, setDrafts] = useState<any[]>([]);
+  const [drafts, setDrafts] = useState<ApplicationDraft[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,8 +30,8 @@ export function useApplications(user: UserProfile | null) {
       await new Promise(resolve => setTimeout(resolve, 500));
       const demoApps = JSON.parse(localStorage.getItem('demo_applications') || '[]');
       const userApps = demoApps
-        .filter((app: any) => app.user_id === user.id)
-        .map((app: any) => ({
+        .filter((app: Application) => app.user_id === user.id)
+        .map((app: Application) => ({
           ...app,
           services: getServiceById(app.service_id) || { name: app.service_name || 'Service', fee: 0 },
           users: user
@@ -42,7 +43,7 @@ export function useApplications(user: UserProfile | null) {
         const key = localStorage.key(i);
         if (key && key.startsWith(`draft_${user.id}_`)) {
           try {
-            const draft = JSON.parse(localStorage.getItem(key)!);
+            const draft = JSON.parse(localStorage.getItem(key)!) as ApplicationDraft;
             userDrafts.push({
               ...draft,
               services: getServiceById(draft.service_id) || { name: draft.service_name || 'Service', fee: 0 },
@@ -70,7 +71,7 @@ export function useApplications(user: UserProfile | null) {
     }
     
     if (data) {
-      const appsWithServices = data.map((app: any) => ({
+      const appsWithServices = data.map((app: Application) => ({
         ...app,
         services: getServiceById(app.service_id) || { name: 'Service', fee: 0 },
         users: user

@@ -1,5 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Application } from '@/lib/supabase';
+import type { PaymentData } from '@/types';
 
 const styles = StyleSheet.create({
   page: { padding: 30 },
@@ -8,7 +10,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }
 });
 
-export const ReceiptPDF: React.FC<{ application: any; paymentData: any; lang: string }> = ({ 
+export const ReceiptPDF: React.FC<{ application: Application; paymentData: PaymentData; lang: string }> = ({ 
   application, paymentData, lang 
 }) => {
   return (

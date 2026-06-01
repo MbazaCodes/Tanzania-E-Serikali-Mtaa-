@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ViewName } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, 
@@ -25,7 +26,7 @@ interface MobileNavProps {
   isOpen: boolean;
   onClose: () => void;
   currentView: string;
-  setView: (view: any) => void;
+  setView: (view: ViewName) => void;
 }
 
 export function MobileNav({ isOpen, onClose, currentView, setView }: MobileNavProps) {

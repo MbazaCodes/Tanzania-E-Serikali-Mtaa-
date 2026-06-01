@@ -3,6 +3,7 @@
  */
 import { StyleSheet } from '@react-pdf/renderer';
 import { Application } from '@/lib/supabase';
+import type { UserProfile } from '@/lib/supabase';
 
 export interface DocumentPDFProps {
   application: Application;
@@ -213,7 +214,7 @@ export const generateQRCodeUrl = (application: Application, serviceName: string)
 };
 
 // Helper function to format user full name
-export const formatFullName = (user: any): string => {
+export const formatFullName = (user: Pick<UserProfile, 'first_name' | 'middle_name' | 'last_name'>): string => {
   return `${user?.first_name || ''} ${user?.middle_name || ''} ${user?.last_name || ''}`.replace(/\s+/g, ' ').trim();
 };
 

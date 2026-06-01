@@ -1,4 +1,5 @@
 import React from 'react';
+import { Application, Service } from '@/lib/supabase';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
@@ -9,7 +10,7 @@ const styles = StyleSheet.create({
   value: { fontSize: 12, marginBottom: 5 }
 });
 
-export const DocumentRenderer: React.FC<{ application: any; service: any }> = ({ application, service }) => {
+export const DocumentRenderer: React.FC<{ application: Application; service: Service }> = ({ application, service }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -23,7 +24,7 @@ export const DocumentRenderer: React.FC<{ application: any; service: any }> = ({
   );
 };
 
-export const DocumentPreview: React.FC<{ application: any; service: any; onClose: () => void }> = ({ 
+export const DocumentPreview: React.FC<{ application: Application; service: Service; onClose: () => void }> = ({ 
   application, service, onClose 
 }) => {
   return (

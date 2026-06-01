@@ -39,7 +39,7 @@ export function ManualVerification() {
     if (!isConfigured) {
       await new Promise(resolve => setTimeout(resolve, 1000));
       const demoCitizens = JSON.parse(localStorage.getItem('demo_citizens') || '[]');
-      setUsers(demoCitizens.filter((c: any) => !c.is_verified));
+      setUsers(demoCitizens.filter((c: import('@/lib/supabase').UserProfile) => !c.is_verified));
       setLoading(false);
       return;
     }

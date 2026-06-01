@@ -126,7 +126,7 @@ export function StaffCitizenManagement() {
       setPendingChanges(prev => prev.filter(c => c.id !== change.id));
       showToast(lang === 'sw' ? 'Mabadiliko yameidhinishwa' : 'Change approved successfully', 'success');
       fetchCitizens();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error approving change:', error);
       showToast(error.message || (lang === 'sw' ? 'Hitilafu kuidhinisha' : 'Error approving change'), 'error');
     }
@@ -147,7 +147,7 @@ export function StaffCitizenManagement() {
 
       setPendingChanges(prev => prev.filter(c => c.id !== change.id));
       showToast(lang === 'sw' ? 'Mabadiliko yamekataliwa' : 'Change rejected', 'info');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error rejecting change:', error);
       showToast(error.message || (lang === 'sw' ? 'Hitilafu kukataa' : 'Error rejecting change'), 'error');
     }
@@ -205,7 +205,7 @@ export function StaffCitizenManagement() {
       if (error) throw error;
       setCitizens(prev => prev.map(c => c.id === citizenId ? { ...c, is_verified: true } : c));
       showToast(lang === 'sw' ? 'Mwananchi amehakikiwa kikamilifu!' : 'Citizen verified successfully!', 'success');
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast(error.message, 'error');
     }
   };
@@ -222,7 +222,7 @@ export function StaffCitizenManagement() {
       if (error) throw error;
       setCitizens(prev => prev.filter(c => c.id !== citizenId));
       showToast(lang === 'sw' ? 'Uhakiki umekataliwa.' : 'Verification declined.', 'success');
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast(error.message, 'error');
     }
   };
@@ -273,7 +273,7 @@ export function StaffCitizenManagement() {
       // In a real app, this would be an Edge Function.
       throw new Error("Manual registration requires backend integration (Edge Functions). Please use Demo Mode for this feature.");
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       showToast(error.message, 'error');
     } finally {
       setIsSubmitting(false);

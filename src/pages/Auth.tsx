@@ -74,7 +74,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
     return groups.join('-');
   };
 
-  const handleLocationSelect = (location: any) => {
+  const handleLocationSelect = (location: Partial<{ region: string; district: string; ward: string; street: string }>) => {
     setRegForm(prev => ({
       ...prev,
       region: location.region || prev.region,
@@ -84,7 +84,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
     }));
   };
 
-  const updateRegForm = (key: string, value: any) => setRegForm((p) => ({ ...p, [key]: value }));
+  const updateRegForm = (key: string, value: unknown) => setRegForm((p) => ({ ...p, [key]: value } as typeof p));
 
   const isSupabaseConfigured = IS_SUPABASE_CONFIGURED;
 
@@ -110,7 +110,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       // NOTE: In production, replace this with a real NIDA API call.
       // The API response should return verified name fields to pre-fill below.
       // setRegForm(prev => ({ ...prev, firstName: res.first_name, ... }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       setNidaError(err.message);
     } finally {
       setNidaVerifying(false);
@@ -209,7 +209,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       }
 
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Login error:', err);
       const isNetworkError = err.name === 'TypeError' || err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError');
       const isTimeout = !!(err as any).__isTimeout;
@@ -259,7 +259,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       }
 
       setForgotPasswordStep(2);
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(err.message, 'error');
     } finally {
       setLoading(false);
@@ -286,7 +286,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       showToast(lang === 'sw' ? "Nywila imebadilishwa kikamilifu!" : "Password reset successfully!", 'success');
       setShowForgotPassword(false);
       setMode('login');
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(err.message, 'error');
     } finally {
       setLoading(false);
@@ -387,7 +387,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       showToast(lang === 'sw' ? 'Usajili umekamilika! Tafadhali kagua barua pepe yako kwa ajili ya uthibitisho.' : 'Signup successful! Please check your email for confirmation.', 'success');
       setMode('login');
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(err.message, 'error');
     } finally {
       setLoading(false);

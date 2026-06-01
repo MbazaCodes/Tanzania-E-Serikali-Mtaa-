@@ -47,7 +47,7 @@ export function CustomerSupport() {
 
       if (!isConfigured || searchTerm.toUpperCase().startsWith('EMT-')) {
         const demoApps = JSON.parse(localStorage.getItem('demo_applications') || '[]');
-        const found = demoApps.find((app: any) => app.application_number === searchTerm.trim().toUpperCase());
+        const found = demoApps.find((app: import('@/lib/supabase').Application) => app.application_number === searchTerm.trim().toUpperCase());
         
         if (found) {
           setApplication({

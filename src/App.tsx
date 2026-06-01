@@ -4,6 +4,7 @@ import {
   AlertCircle, 
 } from 'lucide-react';
 import { supabase, Service, Application } from './lib/supabase';
+import type { ViewName, AnyFormData, PaymentResult, ApplicationDraft } from './types';
 import { HARDCODED_SERVICES } from './constants/services';
 import { useAuth } from './context/AuthContext';
 import { useLanguage } from './context/LanguageContext';
@@ -58,10 +59,10 @@ export default function App() {
     ? currencyString as CurrencyCode 
     : 'TZS';
 
-  const [view, setView] = useState<'dashboard' | 'services' | 'apply' | 'applications' | 'staff_management' | 'application_review' | 'verify_purchase' | 'application_details' | 'profile' | 'verify_documents' | 'admin_dashboard' | 'office_management' | 'location_management' | 'service_management' | 'staff_dashboard' | 'customer_support' | 'manual_verification' | 'admin_logs' | 'citizen_management' | 'business_approval'>('dashboard');
+  const [view, setView] = useState<ViewName>('dashboard');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
-  const [selectedDraft, setSelectedDraft] = useState<any>(null);
+  const [selectedDraft, setSelectedDraft] = useState<ApplicationDraft | null>(null);
   const [payingApplication, setPayingApplication] = useState<Application | null>(null);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [showAuth, setShowAuth] = useState(false);
@@ -101,7 +102,7 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, user?.role]);
 
-  const submitApplication = async (formData: any) => {
+  const submitApplication = async (formData: AnyFormData) => {
     if (!user || !selectedService) {
       showToast(lang === 'sw' ? 'Hitilafu: Mtumiaji au huduma haijachaguliwa' : 'Error: User or service not selected', 'error');
       return;
@@ -248,7 +249,8 @@ export default function App() {
       showToast(lang === 'sw' ? 'Maombi yametumwa kikamilifu!' : 'Application submitted successfully!', 'success');
       setView('applications');
       fetchApplications();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { message?: string };
       console.error('Unexpected error during submission:', err);
       
       // If any unexpected error occurs, fall back to offline mode
@@ -264,7 +266,7 @@ export default function App() {
         return;
       }
       
-      showToast(lang === 'sw' ? 'Hitilafu ya kusubmit: ' + err.message : 'Submission error: ' + err.message, 'error');
+      showToast(lang === 'sw' ? 'Hitilafu ya kusubmit: ' + error.message : 'Submission error: ' + error.message, 'error');
     }
   };
 
@@ -280,7 +282,7 @@ export default function App() {
     setPayingApplication(app);
   };
 
-  const handlePaymentSuccess = async (paymentData: any) => {
+  const handlePaymentSuccess = async (paymentData: PaymentResult) => {
     if (!payingApplication) return;
     
     const isConfigured = IS_SUPABASE_CONFIGURED;
@@ -295,7 +297,7 @@ export default function App() {
 
     if (!isConfigured || user?.id.startsWith('demo-')) {
       const existing = JSON.parse(localStorage.getItem('demo_applications') || '[]');
-      const updated = existing.map((app: any) => 
+      const updated = existing.map((app: import('./lib/supabase').Application) => 
         app.id === payingApplication.id ? { 
           ...app, 
           status: 'paid', 

@@ -5,6 +5,7 @@ import * as z from 'zod';
 import { cn } from '@/lib/utils';
 import { Upload, X, FileText, Loader2, ArrowRight, User, Users, UserPlus, RefreshCw, Search, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import type { FormField, FormFieldOption, AnyFormData, ApplicationDraft } from '@/types';
 
 interface FormField {
   name: string;
@@ -21,7 +22,7 @@ interface FormField {
   };
   showIf?: {
     field: string;
-    value?: any;
+    value?: string | number | boolean;
     values?: any[];  // Support for multiple values (OR condition)
   };
 }
@@ -38,13 +39,13 @@ interface UserProfile {
   district?: string;
   ward?: string;
   street?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface DynamicFormProps {
   schema: FormField[];
-  onSubmit: (data: any, attachments: string[], applicantType: string, representativeName?: string) => void;
-  initialData?: any;
+  onSubmit: (data: AnyFormData, attachments: string[], applicantType: string, representativeName?: string) => void;
+  initialData?: Partial<AnyFormData>;
   isLoading?: boolean;
   lang?: 'sw' | 'en';
   userProfile?: UserProfile | null;
@@ -96,7 +97,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
   }>>({});
 
   // Generate Zod schema dynamically
-  const shape: any = {};
+  const shape: Record<string, unknown> = {};
   schema.forEach((field) => {
     if (field.type === 'header') return; // Skip headers in validation
     if (field.disabled) return; // Skip disabled (auto-calculated) fields from validation
@@ -134,7 +135,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
   const getDefaultValues = () => {
     if (useProfileData && userProfile) {
       // Map user profile fields to form fields
-      const profileMapped: any = {};
+      const profileMapped: Record<string, unknown> = {};
       
       // Common field mappings
       if (userProfile.first_name) profileMapped.first_name = userProfile.first_name;
@@ -235,7 +236,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      const names = Array.from(files).map((f: any) => f.name);
+      const names = Array.from(files).map((f: File) => f.name);
       setAttachments((prev) => [...prev, ...names]);
     }
   };
@@ -413,7 +414,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
     }
   };
 
-  const onFormSubmit = (data: any) => {
+  const onFormSubmit = (data: Record<string, unknown>) => {
     
     // Include minor data if applicable
     const enrichedData = {
@@ -446,7 +447,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
     onSubmit(enrichedData, allAttachments, applicantType, applicantType !== 'self' ? representativeName : undefined);
   };
 
-  const onFormError = (errors: any) => {
+  const onFormError = (errors: Record<string, unknown>) => {
     console.error('Form validation errors:', errors);
   };
 
@@ -1161,8 +1162,8 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
 };
 interface DynamicFormProps {
   schema: FormField[];
-  onSubmit: (data: any, attachments: string[], applicantType: string, representativeName?: string) => void;
-  initialData?: any;
+  onSubmit: (data: AnyFormData, attachments: string[], applicantType: string, representativeName?: string) => void;
+  initialData?: Partial<AnyFormData>;
   isLoading?: boolean;
   lang?: 'sw' | 'en';
   userProfile?: UserProfile | null;

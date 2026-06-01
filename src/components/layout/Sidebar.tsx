@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import type { ViewName } from '@/types';
 import { 
   LayoutDashboard, 
   Plus, 
@@ -22,7 +23,7 @@ import { SidebarItem } from '@/components/ui/SidebarItem';
 
 interface SidebarProps {
   currentView: string;
-  setView: (view: any) => void;
+  setView: (view: ViewName) => void;
 }
 
 export function Sidebar({ currentView, setView }: SidebarProps) {

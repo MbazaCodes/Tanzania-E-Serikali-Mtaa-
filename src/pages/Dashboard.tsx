@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import type { ViewName } from '@/types';
 import { motion } from 'framer-motion';
 import { 
   FileText, 
@@ -19,7 +20,7 @@ import { Application } from '@/lib/supabase';
 
 interface DashboardProps {
   applications: Application[];
-  setView: (view: any) => void;
+  setView: (view: ViewName) => void;
   onRefresh?: () => void;
 }
 

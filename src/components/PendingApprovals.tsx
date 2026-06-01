@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import type { AnyFormData } from '@/types';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { Users, CheckCircle, XCircle, Eye, Loader2, Clock, User, MapPin, DollarSign, AlertCircle } from 'lucide-react';
@@ -9,7 +10,7 @@ interface PendingApproval {
   id: string;
   application_number: string;
   service_name: string;
-  form_data: any;
+  form_data: AnyFormData;
   user_id: string;
   created_at: string;
   submitter?: {

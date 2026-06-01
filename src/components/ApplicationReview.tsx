@@ -1,10 +1,11 @@
 import React from 'react';
+import { UserProfile } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 import { ClipboardCheck } from 'lucide-react';
 
 interface ApplicationReviewProps {
   lang: string;
-  user: any;
+  user: UserProfile;
 }
 
 export function ApplicationReview({ lang, user }: ApplicationReviewProps) {

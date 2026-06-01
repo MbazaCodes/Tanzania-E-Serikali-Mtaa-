@@ -301,7 +301,7 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
         resetForm();
         fetchStaff();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(err.message, 'error');
     } finally {
       setLoading(false);
@@ -324,7 +324,7 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
       const { error } = await supabase.from('services').upsert(INITIAL_SERVICES, { onConflict: 'name' });
       if (error) throw error;
       showToast(lang === 'sw' ? 'Huduma zimeingizwa kikamilifu!' : 'Services seeded successfully!', 'success');
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(err.message, 'error');
     } finally {
       setSeeding(false);
@@ -347,7 +347,7 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
       setShowDetailsModal(false);
       setSelectedStaff(null);
       fetchStaff();
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(err.message, 'error');
     }
   };
@@ -381,7 +381,7 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
       setEditingRole(false);
       setSelectedStaff({ ...selectedStaff, role: editFormData.role });
       fetchStaff();
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(err.message, 'error');
     } finally {
       setUpdating(false);
@@ -393,7 +393,7 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
     
     setUpdating(true);
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         assigned_region: editFormData.region,
         assigned_district: editFormData.officeLevel === 'district' ? editFormData.district : null
       };
@@ -413,7 +413,7 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
         assigned_district: editFormData.officeLevel === 'district' ? editFormData.district : undefined
       });
       fetchStaff();
-    } catch (err: any) {
+    } catch (err: unknown) {
       showToast(err.message, 'error');
     } finally {
       setUpdating(false);

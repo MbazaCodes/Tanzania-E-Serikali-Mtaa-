@@ -234,7 +234,7 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
       if (usersCount.error) console.error('Users error:', usersCount.error);
 
       // Helper function to calculate revenue from applications
-      const calculateRevenueFromApps = (apps: any[] | null): number => {
+      const calculateRevenueFromApps = (apps: import('@/lib/supabase').Application[] | null): number => {
         if (!apps) return 0;
         return apps.reduce((acc, app) => {
           // First check payment_data.amount in form_data

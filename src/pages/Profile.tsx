@@ -1013,7 +1013,7 @@ export function Profile() {
       setIsDirty(false);
       await fetchCompleteProfile();
       await fetchPendingChanges();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving profile:', error);
       showToast(
         error.message || (lang === 'sw' ? 'Hitilafu kuhifadhi wasifu' : 'Error saving profile'),
