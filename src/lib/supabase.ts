@@ -1,8 +1,10 @@
 import { createClient, Session as SupabaseSession } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key';
 
+// Client is always created so imports don't fail at module load time.
+// IS_SUPABASE_CONFIGURED (src/lib/config.ts) guards all actual network calls.
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Re-export Session type
