@@ -265,52 +265,28 @@ BEGIN
 END $$;
 
 -- =====================================================
--- ISSUE 11: Add application status transition validation
+-- ISSUE 11: Application status transition logging
+-- NOTE: Strict transition VALIDATION was intentionally removed.
+-- The app allows staff to skip steps (e.g. submitted -> approved directly)
+-- and uses pending_review / returned which a strict trigger would block.
+-- Status LOGGING (Issue 12 below) is kept — it records history without blocking.
 -- =====================================================
 
--- Create function to validate status transitions
+-- Keep function for reference but do NOT attach it as a blocking trigger
 CREATE OR REPLACE FUNCTION validate_application_status_transition()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Valid status transitions
-    -- submitted -> pending_payment -> paid -> verified -> approved -> issued
-    -- Any status can go to rejected or returned
-    
-    IF OLD.status = 'submitted' AND NEW.status NOT IN ('pending_payment', 'rejected', 'returned') THEN
-        RAISE EXCEPTION 'Invalid status transition from submitted to %', NEW.status;
+    -- Soft log only — does not raise exceptions
+    -- Any transition involving 'issued' is final and should not be reversed
+    IF OLD.status = 'issued' AND NEW.status != 'issued' THEN
+        RAISE WARNING 'Attempting to change status of issued application % from issued to %', NEW.id, NEW.status;
     END IF;
-    
-    IF OLD.status = 'pending_payment' AND NEW.status NOT IN ('paid', 'rejected', 'returned') THEN
-        RAISE EXCEPTION 'Invalid status transition from pending_payment to %', NEW.status;
-    END IF;
-    
-    IF OLD.status = 'paid' AND NEW.status NOT IN ('verified', 'rejected', 'returned') THEN
-        RAISE EXCEPTION 'Invalid status transition from paid to %', NEW.status;
-    END IF;
-    
-    IF OLD.status = 'verified' AND NEW.status NOT IN ('approved', 'rejected', 'returned') THEN
-        RAISE EXCEPTION 'Invalid status transition from verified to %', NEW.status;
-    END IF;
-    
-    IF OLD.status = 'approved' AND NEW.status NOT IN ('issued', 'rejected') THEN
-        RAISE EXCEPTION 'Invalid status transition from approved to %', NEW.status;
-    END IF;
-    
-    -- Once issued, cannot change
-    IF OLD.status = 'issued' THEN
-        RAISE EXCEPTION 'Cannot change status of issued application';
-    END IF;
-    
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Add trigger for status validation
+-- NOT attached as a trigger (intentionally) — see note above
 DROP TRIGGER IF EXISTS tr_validate_status_transition ON applications;
-CREATE TRIGGER tr_validate_status_transition
-    BEFORE UPDATE OF status ON applications
-    FOR EACH ROW
-    EXECUTE FUNCTION validate_application_status_transition();
 
 -- =====================================================
 -- ISSUE 12: Add audit logging for status changes

@@ -19,8 +19,8 @@ END $$;
 
 DO $$ BEGIN
     CREATE TYPE application_status AS ENUM (
-        'submitted', 'pending_payment', 'paid', 'verified', 
-        'approved', 'issued', 'rejected', 'pending_review', 'returned'
+        'submitted', 'pending_review', 'pending_payment', 'paid',
+        'verified', 'approved', 'issued', 'returned', 'rejected', 'refunded'
     );
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
@@ -604,11 +604,11 @@ CREATE SEQUENCE IF NOT EXISTS public.citizen_id_seq START WITH 1;
 -- 8. TRIGGERS
 -- =====================================================
 
--- Application number trigger
+-- NOTE: Application number trigger is intentionally NOT created here.
+-- The frontend generates numbers in format TZ-SERVICE-YYYYMMDD-XXXX.
+-- A DB-side trigger would overwrite those with APP-YYYYMMDD-XXXX.
+-- The generate_app_number() function is kept for reference only.
 DROP TRIGGER IF EXISTS tr_generate_app_number ON applications;
-CREATE TRIGGER tr_generate_app_number
-    BEFORE INSERT ON applications
-    FOR EACH ROW EXECUTE FUNCTION generate_app_number();
 
 -- Citizen ID trigger
 CREATE OR REPLACE FUNCTION public.set_citizen_id()
