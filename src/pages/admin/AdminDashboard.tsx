@@ -186,6 +186,14 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
   // Data fetching
   const fetchDashboardStats = useCallback(async () => {
     setRefreshing(true);
+
+    // Watchdog: force loading off after 12s even if a query hangs,
+    // so the page never spins forever.
+    const watchdog = setTimeout(() => {
+      setLoading(false);
+      setRefreshing(false);
+    }, 12000);
+
     try {
 
       // Fetch real data from Supabase
@@ -370,6 +378,7 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
       // Initialize with zeros on error
       setStats(INITIAL_STATS);
     } finally {
+      clearTimeout(watchdog);
       setLoading(false);
       setRefreshing(false);
     }
@@ -434,17 +443,23 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
 
   useEffect(() => {
     fetchDashboardStats();
-    
-    // Set up real-time subscriptions
-    const subscription = supabase
-      .channel('dashboard-changes')
-      .on('postgres_changes', { event: '*', schema: 'public' }, () => {
-        fetchDashboardStats();
-      })
-      .subscribe();
+
+    // Set up real-time subscriptions (best-effort — won't break the page if
+    // Realtime isn't enabled on the project or the channel fails to connect)
+    let subscription: ReturnType<typeof supabase.channel> | null = null;
+    try {
+      subscription = supabase
+        .channel('dashboard-changes')
+        .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+          fetchDashboardStats();
+        })
+        .subscribe();
+    } catch {
+      // Realtime unavailable — dashboard still works, just no live updates
+    }
 
     return () => {
-      subscription.unsubscribe();
+      try { subscription?.unsubscribe(); } catch { /* ignore */ }
     };
   }, [fetchDashboardStats]);
 
