@@ -17,6 +17,7 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute';
 // Public pages
 import { Landing } from './pages/Landing';
 import { NotFound } from './pages/NotFound';
+import { EmailConfirm } from './pages/EmailConfirm';
 
 // Citizen pages
 import { Dashboard } from './pages/Dashboard';
@@ -269,6 +270,9 @@ export default function App() {
 
           {/* Shared: citizens — renders admin or staff version based on role */}
           <Route path="/citizens" element={<ProtectedRoute allowedRoles={['admin', 'staff']}><AppShell><PageTransition><CitizensRoute /></PageTransition></AppShell></ProtectedRoute>} />
+
+          {/* Email confirmation redirect */}
+          <Route path="/confirm" element={<EmailConfirm />} />
 
           {/* Fallback */}
           <Route path="*" element={<NotFound />} />
