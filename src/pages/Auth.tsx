@@ -23,7 +23,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
 import { supabase, UserProfile } from '@/lib/supabase';
 import { IS_SUPABASE_CONFIGURED } from '@/lib/config';
-import { cn } from '@/lib/utils';
+import { cn, TanzanianBranding } from '@/lib/utils';
 import { TANZANIA_LOGO_URL } from '@/constants/services';
 
 import { COUNTRIES } from '@/constants/countries';
@@ -976,16 +976,20 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
-                          {lang === 'sw' ? 'Mahali pa Kuzaliwa' : 'Place of Birth'}
+                          {lang === 'sw' ? 'Mahali pa Kuzaliwa (Mkoa)' : 'Place of Birth (Region)'}
                         </label>
-                        <input 
-                          type="text"
+                        <select
                           value={regForm.placeOfBirth}
                           onChange={(e) => updateRegForm('placeOfBirth', e.target.value)}
                           className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
-                          placeholder={lang === 'sw' ? 'Mfano: Dar es Salaam' : 'e.g. Dar es Salaam'}
                           aria-label="Place of Birth"
-                        />
+                        >
+                          <option value="">{lang === 'sw' ? 'Chagua Mkoa' : 'Select Region'}</option>
+                          {TanzanianBranding.regions[lang].map((r: string) => (
+                            <option key={r} value={r}>{r}</option>
+                          ))}
+                          <option value="Nje ya Tanzania">{lang === 'sw' ? 'Nje ya Tanzania' : 'Outside Tanzania'}</option>
+                        </select>
                       </div>
                     </div>
 
