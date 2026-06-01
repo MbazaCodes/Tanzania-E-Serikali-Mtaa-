@@ -4,6 +4,7 @@ import {
   AlertCircle, 
 } from 'lucide-react';
 import { supabase, Service, Application } from './lib/supabase';
+import { HARDCODED_SERVICES } from './constants/services';
 import { useAuth } from './context/AuthContext';
 import { useLanguage } from './context/LanguageContext';
 import { useApplications } from './hooks/useApplications';
@@ -293,6 +294,18 @@ export default function App() {
     }
   };
 
+  const handleInitiatePayment = (app: Application) => {
+    const amount = getPaymentAmount(app);
+    if (!amount || amount <= 0) {
+      showToast(
+        lang === 'sw' ? 'Kiasi cha malipo hakikupatikana kwa maombi haya.' : 'No payment amount found for this application.',
+        'error'
+      );
+      return;
+    }
+    setPayingApplication(app);
+  };
+
   const handlePaymentSuccess = async (paymentData: any) => {
     if (!payingApplication) return;
     
@@ -500,18 +513,20 @@ export default function App() {
               <Applications 
                 applications={applications}
                 drafts={drafts}
-                onPay={setPayingApplication} 
+                onPay={handleInitiatePayment} 
                 onRefresh={fetchApplications}
                 onResumeDraft={(draft) => {
                   setSelectedDraft(draft);
-                  setSelectedService({
+                  // Look up the real service so fee/form_schema are correct
+                  const realService = HARDCODED_SERVICES.find(s => s.id === draft.service_id);
+                  setSelectedService(realService ?? {
                     id: draft.service_id,
                     name: draft.service_name,
                     name_en: draft.service_name,
                     description: '',
                     fee: 0,
                     form_schema: {},
-                    is_active: true,
+                    active: true,
                     created_at: new Date().toISOString()
                   });
                   setView('apply');

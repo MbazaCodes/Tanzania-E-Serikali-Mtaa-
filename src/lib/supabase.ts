@@ -20,8 +20,7 @@ export interface Service {
   validity_months?: number;
   document_template?: any;
   extra_address_fee?: number;
-  is_active?: boolean;
-  active?: boolean;
+  active?: boolean;  // matches DB column name
   created_at: string;
 }
 
