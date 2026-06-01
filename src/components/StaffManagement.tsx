@@ -44,6 +44,7 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [seeding, setSeeding] = useState(false);
+  const [createdTempPassword, setCreatedTempPassword] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [officeLevel, setOfficeLevel] = useState<'region' | 'district'>('region');
@@ -241,7 +242,11 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
       crypto.getRandomValues(array);
       const tempPassword = btoa(String.fromCharCode(...array)).replace(/[+/=]/g, '').slice(0, 12) + 'Tz1!';
 
-      // Create Auth User with auto-confirm option
+      // Save admin session — signUp can swap the current session if email
+      // confirmation is disabled in Supabase settings
+      const { data: adminSession } = await supabase.auth.getSession();
+
+      // Create Auth User
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newStaff.email,
         password: tempPassword,
@@ -250,11 +255,17 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
             role: newStaff.role,
             office_id: officeId
           },
-          // Note: For auto-confirm to work, you need to disable email confirmation
-          // in Supabase Dashboard: Authentication > Email Templates > Confirm signup
           emailRedirectTo: undefined
         }
       });
+
+      // Restore admin session if it was swapped
+      if (adminSession?.session) {
+        await supabase.auth.setSession({
+          access_token: adminSession.session.access_token,
+          refresh_token: adminSession.session.refresh_token,
+        });
+      }
 
       if (authError) {
         // If email already registered in auth but not in users table
@@ -285,17 +296,17 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
           assigned_region: selectedRegion,
           assigned_district: officeLevel === 'district' ? selectedDistrict : null,
           is_verified: true,
-          gender: 'Me',
-          nationality: 'Mtanzania'
+          gender: 'M',
+          nationality: 'Tanzanian'
         });
 
         if (profileError) throw profileError;
 
-        // Show success with temporary password
-        // Note: If email confirmation is enabled, staff must click the confirmation link first
+        // Show the temp password to the admin so they can share it
+        setCreatedTempPassword(tempPassword);
         showToast(lang === 'sw'
-          ? `Mtumishi amesajiliwa! Wajibu: ${newStaff.role}. Nywila ya muda imetumwa kwa barua pepe. Kama uthibitisho wa barua pepe umewezeshwa, wanahitaji kuthibitisha kwanza.`
-          : `Staff created with role: ${newStaff.role}. Temporary password sent to their email. If email confirmation is enabled, they must confirm first.`, 'success');
+          ? `Mtumishi amesajiliwa! Wajibu: ${newStaff.role}. Nywila ya muda: ${tempPassword}`
+          : `Staff created with role: ${newStaff.role}. Temp password: ${tempPassword}`, 'success');
         
         setShowAddModal(false);
         resetForm();

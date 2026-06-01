@@ -677,6 +677,12 @@ CREATE POLICY "Users can view own profile" ON users FOR SELECT USING (auth.uid()
 DROP POLICY IF EXISTS "Users can insert own profile" ON users;
 CREATE POLICY "Users can insert own profile" ON users FOR INSERT WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admin can insert any user" ON users;
+CREATE POLICY "Admin can insert any user" ON users FOR INSERT WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS "Admin can delete users" ON users;
+CREATE POLICY "Admin can delete users" ON users FOR DELETE USING (public.is_admin());
+
 DROP POLICY IF EXISTS "Users can update own profile" ON users;
 CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid() = id);
 

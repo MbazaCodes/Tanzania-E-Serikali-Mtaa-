@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     middle_name: sessionUser.user_metadata?.middle_name || '',
     last_name: sessionUser.user_metadata?.last_name || '',
     phone: sessionUser.user_metadata?.phone || '',
-    role: 'citizen',
+    role: (sessionUser.user_metadata?.role as 'citizen' | 'staff' | 'admin') || 'citizen',
     is_verified: false,
     account_status: 'active',
   });

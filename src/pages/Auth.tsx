@@ -152,9 +152,6 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       );
       (unreachableError as any).__isTimeout = true;
 
-      console.log('[Auth Debug] Starting signInWithPassword for email:', email);
-      console.log('[Auth Debug] Timeout: 20s');
-      
       const { data, error } = await Promise.race([
         supabase.auth.signInWithPassword({ email, password }),
         new Promise<never>((_, reject) =>
@@ -166,15 +163,9 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       ]);
 
       // --- Handle auth response ---
-      console.log('[Auth Debug] Got response - data:', !!data, 'error:', !!error);
 
       if (error) {
-        console.error('[Auth Debug] Supabase error details:', {
-          message: (error as { message?: string; status?: number }).message,
-          status: (error as { status?: number }).status,
-          code: (error as any).code,
-          fullError: error
-        });
+        console.error('Auth error:', (error as { message?: string }).message);
         // 404/503/0 = project paused or infrastructure down
         if (error.status === 503 || error.status === 0) {
           throw unreachableError;
@@ -201,38 +192,36 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
         const userEmail = data.user.email?.toLowerCase() || '';
         const isAdminEmail = adminEmails.includes(userEmail);
 
-        // Non-blocking: set up / upgrade profile after auth succeeds
+        // Non-blocking: ensure profile exists and admin emails get admin role
         (async () => {
           try {
-            const profileResult = await supabase.rpc('get_user_profile', { user_id: data.user!.id });
-            const profileData = profileResult?.data;
+            // Check if profile already exists (direct query, no RPC dependency)
+            const { data: existingProfile } = await supabase
+              .from('users')
+              .select('id, role')
+              .eq('id', data.user!.id)
+              .maybeSingle();
 
-            if (!profileData || profileData.length === 0) {
-              const { error: insertError } = await supabase
-                .from('users')
-                .upsert({
-                  id: data.user!.id,
-                  email: userEmail,
-                  first_name: data.user!.user_metadata?.first_name || 'User',
-                  last_name: data.user!.user_metadata?.last_name || '',
-                  middle_name: data.user!.user_metadata?.middle_name || '',
-                  phone: data.user!.user_metadata?.phone || '',
-                  role: isAdminEmail ? 'admin' : 'citizen',
-                  is_verified: false,
-                  nationality: 'Tanzanian',
-                  country_of_citizenship: 'Tanzania',
-                }, { onConflict: 'id' });
-
-              if (insertError) {
-                console.error('Error creating profile:', {
-                  code: (insertError as any).code,
-                  message: insertError.message,
-                });
-              }
-            } else if (isAdminEmail && profileData[0]?.role !== 'admin') {
+            if (!existingProfile) {
+              // Auto-create a minimal profile (e.g. for staff created by admin)
+              await supabase.from('users').upsert({
+                id: data.user!.id,
+                email: userEmail,
+                first_name: data.user!.user_metadata?.first_name || userEmail.split('@')[0] || 'User',
+                last_name: data.user!.user_metadata?.last_name || '',
+                middle_name: data.user!.user_metadata?.middle_name || '',
+                phone: data.user!.user_metadata?.phone || '',
+                role: isAdminEmail ? 'admin' : (data.user!.user_metadata?.role as string || 'citizen'),
+                is_verified: false,
+                nationality: 'Tanzanian',
+                country_of_citizenship: 'Tanzania',
+              }, { onConflict: 'id' });
+            } else if (isAdminEmail && existingProfile.role !== 'admin') {
+              // Auto-promote admin emails
               await supabase.from('users').update({ role: 'admin' }).eq('id', data.user!.id);
             }
-          } catch (profileInitError) {
+          } catch {
+            // Profile init is non-blocking — login still succeeds
           }
         })();
 
@@ -244,9 +233,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       onClose();
     } catch (err: unknown) {
       const _e = err as { message?: string };
-      console.error('[Auth Debug] Login catch block - Full error:', err);
-      console.error('[Auth Debug] Error message:', _e.message);
-      console.error('[Auth Debug] Error is timeout?', !!(err as any).__isTimeout);
+      console.error('Login error:', _e.message);
       
       const isTimeout = !!(err as any).__isTimeout;
       const isNetworkError = isTimeout
