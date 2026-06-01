@@ -1149,7 +1149,6 @@ export function Profile() {
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                     onError={() => {
-                      console.warn('Profile image failed to load', { src: user?.photo_url });
                       setIsProfileImageBroken(true);
                     }}
                   />
@@ -2609,10 +2608,6 @@ export function Profile() {
                                           alt={doc.document_name}
                                           className="w-full h-full object-cover rounded-lg"
                                           onError={() => {
-                                            console.warn('Document preview failed to load', {
-                                              docId: doc.id,
-                                              src: doc.document_url,
-                                            });
                                             setFailedDocumentPreviews(prev => ({
                                               ...prev,
                                               [doc.id]: true,

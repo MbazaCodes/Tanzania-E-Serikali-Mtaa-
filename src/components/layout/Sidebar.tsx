@@ -45,10 +45,8 @@ export function Sidebar({ currentView, setView }: SidebarProps) {
           .rpc('get_user_profile', { user_id: session.user.id });
 
         if (data && data.length > 0) {
-          console.log('RPC role fetch:', data[0].role);
           setActualRole(data[0].role);
         } else {
-          console.log('No user profile found, using auth context role');
           setActualRole(user?.role || null);
         }
       } catch (err) {

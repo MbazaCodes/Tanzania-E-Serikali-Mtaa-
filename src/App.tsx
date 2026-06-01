@@ -88,45 +88,24 @@ export default function App() {
     return 0;
   };
 
-  // Redirect to appropriate dashboard based on user role
+  // Redirect to role-appropriate dashboard on login — single effect, no race condition
   useEffect(() => {
-    if (user && user.role) {
-      console.log('User role detected:', user.role, 'Current view:', view);
-      if (user.role === 'admin' && view !== 'admin_dashboard') {
-        console.log('Redirecting to admin_dashboard');
-        setView('admin_dashboard');
-      } else if (user.role === 'staff' && view !== 'staff_dashboard') {
-        console.log('Redirecting to staff_dashboard');
-        setView('staff_dashboard');
-      } else if (user.role === 'citizen' && view === 'admin_dashboard') {
-        console.log('Redirecting to citizen dashboard');
-        setView('dashboard');
-      }
-    }
-  }, [user?.role]);
-
-  // Force update when user changes
-  useEffect(() => {
-    if (user?.role === 'admin' && view === 'dashboard') {
-      console.log('Force: Admin user on default dashboard, switching to admin_dashboard');
+    if (!user?.role) return;
+    if (user.role === 'admin') {
       setView('admin_dashboard');
-    } else if (user?.role === 'staff' && view === 'dashboard') {
-      console.log('Force: Staff user on default dashboard, switching to staff_dashboard');
+    } else if (user.role === 'staff') {
       setView('staff_dashboard');
+    } else if (user.role === 'citizen' && (view === 'admin_dashboard' || view === 'staff_dashboard')) {
+      setView('dashboard');
     }
-  }, [user?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, user?.role]);
 
   const submitApplication = async (formData: any) => {
     if (!user || !selectedService) {
       showToast(lang === 'sw' ? 'Hitilafu: Mtumiaji au huduma haijachaguliwa' : 'Error: User or service not selected', 'error');
       return;
     }
-
-    console.log('Submitting application:', { 
-      user_id: user.id, 
-      service_id: selectedService.id,
-      service_name: selectedService.name 
-    });
 
     // Generate service code from service name
     const getServiceCode = (name: string): string => {
@@ -167,7 +146,6 @@ export default function App() {
 
     // If not configured or demo user, use localStorage
     if (!isConfigured || user?.id.startsWith('demo-')) {
-      console.log('Using offline/demo mode for application');
       const existing = JSON.parse(localStorage.getItem('demo_applications') || '[]');
       localStorage.setItem('demo_applications', JSON.stringify([newApp, ...existing]));
       
@@ -176,8 +154,6 @@ export default function App() {
       fetchApplications();
       return;
     }
-
-    console.log('Attempting to submit to Supabase...');
     
     try {
       // Extract approval workflow data
@@ -231,7 +207,6 @@ export default function App() {
             error.message?.includes('NetworkError') ||
             error.message?.includes('Failed to fetch') ||
             error.message?.includes('net::')) {
-          console.warn('Network error detected, falling back to offline mode');
           const existing = JSON.parse(localStorage.getItem('demo_applications') || '[]');
           localStorage.setItem('demo_applications', JSON.stringify([newApp, ...existing]));
           showToast(lang === 'sw' ? 'Maombi yametumwa (Hifadhi ya Ndani - Hakuna Mtandao)' : 'Application submitted (Offline - No Internet)', 'warning');
@@ -281,7 +256,6 @@ export default function App() {
           err?.message?.includes('NetworkError') ||
           err?.message?.includes('Failed to fetch') ||
           !navigator.onLine) {
-        console.warn('Network error detected, falling back to offline mode');
         const existing = JSON.parse(localStorage.getItem('demo_applications') || '[]');
         localStorage.setItem('demo_applications', JSON.stringify([newApp, ...existing]));
         showToast(lang === 'sw' ? 'Maombi yametumwa (Hifadhi ya Ndani)' : 'Application submitted (Offline)', 'warning');

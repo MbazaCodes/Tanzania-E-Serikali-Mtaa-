@@ -33,12 +33,6 @@ export function Services({ onSelectService, onRefresh }: ServicesProps) {
     setTimeout(() => setIsRefreshing(false), 500);
   };
 
-  console.log('Services rendering:', { 
-    servicesCount: HARDCODED_SERVICES.length, 
-    services: HARDCODED_SERVICES.map(s => s.name),
-    userVerified: user?.is_verified 
-  });
-
   const getServiceIcon = (name: string) => {
     if (name.includes('Mkazi')) return FileCheck2;
     if (name.includes('Utambulisho')) return Users2;

@@ -30,3 +30,6 @@ dist-ssr
 
 # Tailwind CSS v4
 *.css.map
+# Backup files
+*.bak
+*.backup

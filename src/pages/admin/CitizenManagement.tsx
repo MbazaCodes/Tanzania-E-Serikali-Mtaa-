@@ -201,7 +201,6 @@ export function CitizenManagement() {
   const fetchCitizens = async () => {
     setLoading(true);
     try {
-      console.log('CitizenManagement: Fetching citizens from Supabase...');
 
       const { data, error } = await supabase
         .from('users')
@@ -215,8 +214,6 @@ export function CitizenManagement() {
         setCitizens([]);
         return;
       }
-
-      console.log('Citizens fetched from Supabase:', data?.length || 0);
       setCitizens(data || []);
     } catch (error) {
       console.error('Exception in fetchCitizens:', error);

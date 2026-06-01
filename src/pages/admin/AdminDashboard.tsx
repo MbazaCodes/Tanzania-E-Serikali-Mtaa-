@@ -176,7 +176,6 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
   const fetchDashboardStats = useCallback(async () => {
     setRefreshing(true);
     try {
-      console.log('Fetching dashboard stats...');
 
       // Fetch real data from Supabase
       const [
@@ -230,8 +229,7 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
       ]);
 
       // Log results for debugging
-      console.log('Applications count result:', applicationsCount);
-      console.log('Users count result:', usersCount);
+
       if (applicationsCount.error) console.error('Applications error:', applicationsCount.error);
       if (usersCount.error) console.error('Users error:', usersCount.error);
 
@@ -298,8 +296,6 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
         apiCalls: 1250000,
         averageResponseTime: 245,
       };
-
-      console.log('Dashboard stats loaded:', newStats);
       setStats(newStats);
       
       // Fetch recent activities

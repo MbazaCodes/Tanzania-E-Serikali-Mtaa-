@@ -147,7 +147,6 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       ]);
 
       // --- Handle auth response ---
-      console.log('Login attempt:', email);
 
       if (error) {
         console.error('Supabase auth error:', error.message, error.status);
@@ -163,8 +162,6 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
         }
         throw error;
       }
-
-      console.log('Login successful, user ID:', data.user?.id);
 
       if (data.user) {
         const adminEmails = ['mbazzacodes@gmail.com'];
@@ -203,13 +200,11 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
               await supabase.from('users').update({ role: 'admin' }).eq('id', data.user!.id);
             }
           } catch (profileInitError) {
-            console.warn('Non-blocking profile init issue during login:', profileInitError);
           }
         })();
 
         // Do not block login UX on profile refresh.
         fetchUserProfile(data.user.id).catch((refreshError) => {
-          console.warn('Non-blocking profile refresh error:', refreshError);
         });
       }
 

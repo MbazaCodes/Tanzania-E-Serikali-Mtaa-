@@ -131,7 +131,6 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
   const fetchStaff = async () => {
     setLoading(true);
     try {
-      console.log('StaffManagement: Fetching staff from Supabase...');
 
       const { data, error } = await supabase
         .from('users')
@@ -144,8 +143,6 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
         setStaff([]);
         return;
       }
-
-      console.log('Staff fetched from Supabase:', data?.length || 0);
       setStaff(data || []);
     } catch (error) {
       console.error('Error fetching staff:', error);

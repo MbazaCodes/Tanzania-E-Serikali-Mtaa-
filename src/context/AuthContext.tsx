@@ -102,7 +102,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(null);
         }
       } catch (error) {
-        console.warn('Auth session init fallback:', error);
         if (!isMounted) return;
         setSession(null);
         setUser(null);

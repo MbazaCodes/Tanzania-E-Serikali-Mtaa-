@@ -176,7 +176,6 @@ export function VerifyDocuments({
     // Search Supabase - try multiple search patterns
     const searchTerm = qrInput.trim();
     const searchTermUpper = searchTerm.toUpperCase();
-    console.log('VerifyDocuments: Searching for application:', searchTerm);
     
     // Try exact match first (case-sensitive)
     let { data, error } = await supabase
@@ -195,7 +194,6 @@ export function VerifyDocuments({
 
     // If not found, try uppercase version
     if (!data && !error) {
-      console.log('VerifyDocuments: Trying uppercase search...');
       const result = await supabase
         .from('applications')
         .select(`
@@ -216,7 +214,6 @@ export function VerifyDocuments({
 
     // If still not found, try case-insensitive search with ilike
     if (!data && !error) {
-      console.log('VerifyDocuments: Exact match not found, trying ilike search...');
       const result = await supabase
         .from('applications')
         .select(`
@@ -236,14 +233,11 @@ export function VerifyDocuments({
       error = result.error;
     }
 
-    console.log('VerifyDocuments: Query result:', { data, error });
-
     if (error) {
       console.error('VerifyDocuments: Error searching application:', error);
       setVerificationStatus("invalid");
       setVerifiedDocument(null);
     } else if (!data) {
-      console.log('VerifyDocuments: No application found');
       setVerificationStatus("invalid");
       setVerifiedDocument(null);
     } else {

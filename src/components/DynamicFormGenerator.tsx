@@ -414,7 +414,6 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
   };
 
   const onFormSubmit = (data: any) => {
-    console.log('Form submitted with data:', data);
     
     // Include minor data if applicable
     const enrichedData = {

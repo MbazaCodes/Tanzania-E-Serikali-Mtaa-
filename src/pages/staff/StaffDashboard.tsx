@@ -75,8 +75,6 @@ export function StaffDashboard({ setView }: StaffDashboardProps) {
         setLoading(false);
         return;
       }
-
-      console.log('Staff dashboard: fetching stats...');
       let statsQuery = supabase.from('applications').select('status', { count: 'exact' });
       
       if (['staff', 'admin'].includes(user?.role || '')) {
@@ -89,8 +87,6 @@ export function StaffDashboard({ setView }: StaffDashboardProps) {
 
       const { data: allApps, error: statsError } = await statsQuery;
       
-      console.log('Staff stats result:', { allApps, statsError });
-      
       if (allApps) {
         setStats({
           pending: allApps.filter(a => a.status === 'submitted').length,
@@ -102,7 +98,6 @@ export function StaffDashboard({ setView }: StaffDashboardProps) {
       }
 
       // Fetch recent applications (without service join to avoid empty results)
-      console.log('Staff dashboard: fetching applications...');
       let query = supabase
         .from('applications')
         .select('*')
@@ -111,19 +106,14 @@ export function StaffDashboard({ setView }: StaffDashboardProps) {
       // Only filter by location if assigned - otherwise, staff can see all (small mtaa)
       if (['staff', 'admin'].includes(user?.role || '')) {
         if (user?.assigned_district) {
-          console.log('Filtering applications by district:', user.assigned_district);
           query = query.eq('district', user.assigned_district);
         } else if (user?.assigned_region) {
-          console.log('Filtering applications by region:', user.assigned_region);
           query = query.eq('region', user.assigned_region);
         } else {
-          console.log('Staff has no assigned location - showing all applications');
         }
       }
 
       const { data, error } = await query.limit(10);
-
-      console.log('Staff applications result:', { data, error, count: data?.length });
 
       if (!error && data) {
         setApplications(data);

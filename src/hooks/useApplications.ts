@@ -57,8 +57,6 @@ export function useApplications(user: UserProfile | null) {
       setLoading(false);
       return;
     }
-
-    console.log('Fetching applications for user:', user.id);
     
     const { data, error: fetchError } = await supabase
       .from('applications')
