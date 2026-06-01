@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       try {
         const timeoutPromise = new Promise<{ data: { session: Session | null } }>((resolve) => {
-          setTimeout(() => resolve({ data: { session: null } }), 8000);
+          setTimeout(() => resolve({ data: { session: null } }), 15000);
         });
 
         const sessionPromise = supabase.auth.getSession();

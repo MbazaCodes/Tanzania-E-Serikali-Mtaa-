@@ -143,7 +143,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       const { data, error } = await Promise.race([
         supabase.auth.signInWithPassword({ email, password }),
         new Promise<never>((_, reject) =>
-          setTimeout(() => reject(unreachableError), 8000)
+          setTimeout(() => reject(unreachableError), 20000)
         ),
       ]);
 
