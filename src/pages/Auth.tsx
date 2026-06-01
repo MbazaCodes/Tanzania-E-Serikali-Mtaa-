@@ -420,8 +420,8 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
           nationality: regForm.nationality === 'Mtanzania' ? 'Tanzanian' : 'Foreigner',
           country_of_citizenship: regForm.nationality === 'Mtanzania' ? 'Tanzania' : regForm.countryOfCitizenship,
           nida_number: regForm.hasNida ? regForm.nidaNumber.replace(/-/g, '') : null,
-          id_type: !regForm.hasNida ? regForm.idType : null,
-          id_number: !regForm.hasNida ? regForm.idNumber : null,
+          id_type: regForm.idType || null,
+          id_number: regForm.idNumber || null,
           region: regForm.region,
           district: regForm.district,
           ward: regForm.ward,
@@ -825,45 +825,71 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                             {nidaVerified && <p className="text-xs text-emerald-600 font-bold flex items-center gap-1"><CheckCircle2 size={12} /> {lang === 'sw' ? 'NIDA imehakikiwa kikamilifu' : 'NIDA verified successfully'}</p>}
                           </div>
                         ) : (
-                          <>
-                            <div className="space-y-2">
-                              <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">{lang === 'sw' ? 'Aina ya Kitambulisho' : 'ID Type'}</label>
-                              <select
-                                value={regForm.idType}
-                                onChange={(e) => updateRegForm('idType', e.target.value)}
-                                className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
-                                aria-label="ID Type"
-                              >
-                                <option value="">{lang === 'sw' ? 'Chagua Aina ya Kitambulisho' : 'Select ID Type'}</option>
-                                <option value="birth_certificate">{lang === 'sw' ? 'Cheti cha Kuzaliwa' : 'Birth Certificate'}</option>
-                                <option value="voter_id">{lang === 'sw' ? 'Kadi ya Mpiga Kura (E-NEC)' : 'Voter ID (E-NEC)'}</option>
-                                <option value="driving_license">{lang === 'sw' ? 'Leseni ya Udereva' : 'Driving License'}</option>
-                                <option value="zanzibar_id">{lang === 'sw' ? 'Kitambulisho cha Zanzibar' : 'Zanzibar ID'}</option>
-                                <option value="student_id">{lang === 'sw' ? 'Kitambulisho cha Mwanafunzi' : 'Student ID'}</option>
-                                <option value="employer_id">{lang === 'sw' ? 'Kitambulisho cha Kazi' : 'Employer ID'}</option>
-                              </select>
-                            </div>
-                            <div className="space-y-2">
-                              <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">{lang === 'sw' ? 'Namba ya Kitambulisho' : 'ID Number'}</label>
-                              <input 
-                                type="text"
-                                value={regForm.idNumber}
-                                onChange={(e) => updateRegForm('idNumber', e.target.value)}
-                                className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
-                                placeholder={lang === 'sw' ? 'Ingiza Namba ya Kitambulisho' : 'Enter ID Number'}
-                                aria-label="ID Number"
-                              />
-                            </div>
-                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                              <p className="text-xs text-amber-700">
-                                <AlertCircle size={12} className="inline mr-1" />
-                                {lang === 'sw' 
-                                  ? 'Akaunti bila NIDA itahitaji uthibitisho wa ziada. Huduma zingine zinaweza kuwa na vikwazo.' 
-                                  : 'Accounts without NIDA require additional verification. Some services may be restricted.'}
-                              </p>
-                            </div>
-                          </>
+                          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                            <p className="text-xs text-amber-700">
+                              <AlertCircle size={12} className="inline mr-1" />
+                              {lang === 'sw' 
+                                ? 'Akaunti bila NIDA itahitaji uthibitisho wa ziada. Huduma zingine zinaweza kuwa na vikwazo.' 
+                                : 'Accounts without NIDA require additional verification. Some services may be restricted.'}
+                            </p>
+                          </div>
                         )}
+
+                        {/* ID Type & ID Number — always visible */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
+                              {lang === 'sw' ? 'Aina ya Kitambulisho' : 'ID Type'}
+                              {!regForm.hasNida && <span className="text-red-400 ml-0.5">*</span>}
+                            </label>
+                            <select
+                              value={regForm.idType}
+                              onChange={(e) => updateRegForm('idType', e.target.value)}
+                              className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                              aria-label="ID Type"
+                            >
+                              <option value="">{lang === 'sw' ? 'Chagua Aina ya Kitambulisho' : 'Select ID Type'}</option>
+                              <option value="birth_certificate">{lang === 'sw' ? 'Cheti cha Kuzaliwa' : 'Birth Certificate'}</option>
+                              <option value="voter_id">{lang === 'sw' ? 'Kadi ya Mpiga Kura (E-NEC)' : 'Voter ID (E-NEC)'}</option>
+                              <option value="driving_license">{lang === 'sw' ? 'Leseni ya Udereva' : 'Driving License'}</option>
+                              <option value="zanzibar_id">{lang === 'sw' ? 'Kitambulisho cha Zanzibar' : 'Zanzibar ID'}</option>
+                              <option value="student_id">{lang === 'sw' ? 'Kitambulisho cha Mwanafunzi' : 'Student ID'}</option>
+                              <option value="employer_id">{lang === 'sw' ? 'Kitambulisho cha Kazi' : 'Employer ID'}</option>
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
+                              {lang === 'sw' ? 'Namba ya Kitambulisho' : 'ID Number'}
+                              {!regForm.hasNida && <span className="text-red-400 ml-0.5">*</span>}
+                            </label>
+                            <input 
+                              type="text"
+                              value={regForm.idNumber}
+                              onChange={(e) => updateRegForm('idNumber', e.target.value)}
+                              className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                              placeholder={lang === 'sw' ? 'Ingiza Namba ya Kitambulisho' : 'Enter ID Number'}
+                              aria-label="ID Number"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Phone number — collected early in Step 1 */}
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
+                            {lang === 'sw' ? 'Namba ya Simu' : 'Phone Number'} <span className="text-red-400">*</span>
+                          </label>
+                          <div className="relative">
+                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 z-10" size={20} />
+                            <PhoneInput
+                              international
+                              defaultCountry="TZ"
+                              value={regForm.phone}
+                              onChange={(val) => updateRegForm('phone', val)}
+                              className="w-full h-14 pl-12 pr-4 bg-stone-50 border border-stone-200 rounded-2xl focus-within:ring-2 focus-within:ring-emerald-500 transition-all font-medium"
+                              aria-label="Phone Number"
+                            />
+                          </div>
+                        </div>
                       </div>
                     ) : (
                       <div className="space-y-2">
@@ -1179,21 +1205,6 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                     className="space-y-6"
                   >
                     <form onSubmit={handleSignup} className="space-y-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">{lang === 'sw' ? 'Namba ya Simu' : 'Phone Number'}</label>
-                        <div className="relative">
-                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 z-10" size={20} />
-                          <PhoneInput
-                            international
-                            defaultCountry="TZ"
-                            value={regForm.phone}
-                            onChange={(val) => updateRegForm('phone', val)}
-                            className="w-full h-14 pl-12 pr-4 bg-stone-50 border border-stone-200 rounded-2xl focus-within:ring-2 focus-within:ring-emerald-500 transition-all font-medium"
-                            aria-label="Phone Number"
-                          />
-                        </div>
-                      </div>
-
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">{lang === 'sw' ? 'Barua pepe' : 'Email'}</label>
                         <div className="relative">
