@@ -1258,14 +1258,23 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                           <div className="relative">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" size={20} />
                             <input 
-                              type="password" 
+                              type={showPassword ? "text" : "password"} 
                               value={regForm.password}
                               onChange={(e) => updateRegForm('password', e.target.value)}
-                              className="w-full h-14 pl-12 pr-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                              className="w-full h-14 pl-12 pr-12 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
                               placeholder="••••••••"
                               required
                               aria-label="Password"
                             />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
+                              title={showPassword ? (lang === 'sw' ? 'Ficha nenosiri' : 'Hide password') : (lang === 'sw' ? 'Onyesha nenosiri' : 'Show password')}
+                              aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            >
+                              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                           </div>
                         </div>
                         <div className="space-y-2">
@@ -1273,14 +1282,23 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                           <div className="relative">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" size={20} />
                             <input 
-                              type="password" 
+                              type={showPassword ? "text" : "password"} 
                               value={regForm.confirmPassword}
                               onChange={(e) => updateRegForm('confirmPassword', e.target.value)}
-                              className="w-full h-14 pl-12 pr-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                              className="w-full h-14 pl-12 pr-12 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
                               placeholder="••••••••"
                               required
                               aria-label="Confirm Password"
                             />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
+                              title={showPassword ? (lang === 'sw' ? 'Ficha nenosiri' : 'Hide password') : (lang === 'sw' ? 'Onyesha nenosiri' : 'Show password')}
+                              aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            >
+                              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                           </div>
                         </div>
                       </div>
