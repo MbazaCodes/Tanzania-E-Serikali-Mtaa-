@@ -327,198 +327,158 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[Signup] Submit clicked. Form data:', {
+    console.log('[Signup] === SUBMIT CLICKED ===');
+    console.log('[Signup] Form data:', JSON.stringify({
       firstName: regForm.firstName, lastName: regForm.lastName,
-      email: regForm.email, phone: regForm.phone,
-      hasNida: regForm.hasNida, nationality: regForm.nationality,
-      dateOfBirth: regForm.dateOfBirth, region: regForm.region
-    });
+      email: regForm.email, phone: regForm.phone, sex: regForm.sex,
+      nationality: regForm.nationality, hasNida: regForm.hasNida,
+      dateOfBirth: regForm.dateOfBirth, region: regForm.region,
+    }));
 
+    // --- Validation ---
     if (!regForm.firstName.trim() || !regForm.lastName.trim()) {
-      const msg = lang === 'sw' ? "Tafadhali ingiza jina la kwanza na la mwisho" : "Please enter your first and last name";
-      console.error('[Signup] BLOCKED: names empty', { firstName: regForm.firstName, lastName: regForm.lastName });
-      showToast(msg, 'error');
-      setRegStep(1); // Send user back to Step 1 to fill names
+      showToast(lang === 'sw' ? "Tafadhali ingiza jina la kwanza na la mwisho" : "Please enter your first and last name", 'error');
+      setRegStep(1);
       return;
     }
-    
     if (regForm.password !== regForm.confirmPassword) {
       showToast(lang === 'sw' ? "Nywila hazifanani" : "Passwords do not match", 'error');
       return;
     }
-
-    if (regForm.nationality === 'Mtanzania' && regForm.hasNida && regForm.nidaNumber.replace(/\D/g, '').length !== 20) {
-      showToast(lang === 'sw' ? "Namba ya NIDA lazima iwe na tarakimu 20" : "NIDA number must be 20 digits", 'error');
+    if (regForm.password.length < 6) {
+      showToast(lang === 'sw' ? "Nywila lazima iwe na herufi 6 au zaidi" : "Password must be at least 6 characters", 'error');
       return;
     }
-
-    if (regForm.nationality === 'Mtanzania' && !regForm.hasNida && (!regForm.idType || !regForm.idNumber)) {
-      showToast(lang === 'sw' ? "Tafadhali chagua aina ya kitambulisho na ingiza namba" : "Please select ID type and enter ID number", 'error');
-      return;
-    }
-
-    if (!regForm.phone || !isValidPhoneNumber(regForm.phone)) {
-      showToast(lang === 'sw' ? "Namba ya simu haijakamilika au si sahihi" : "Phone number is incomplete or invalid", 'error');
-      return;
-    }
-
-    if (!regForm.dateOfBirth) {
-      showToast(lang === 'sw' ? "Tafadhali ingiza tarehe ya kuzaliwa" : "Please enter your date of birth", 'error');
+    if (!regForm.phone) {
+      showToast(lang === 'sw' ? "Tafadhali ingiza namba ya simu" : "Please enter your phone number", 'error');
+      setRegStep(1);
       return;
     }
 
     setLoading(true);
-
     try {
-      console.log('[Signup] Starting registration for:', regForm.email);
+      // ── Step 1: Create auth user ──────────────────────────────────
+      console.log('[Signup] Step 1: Creating auth user...');
+      const { data, error } = await supabase.auth.signUp({
+        email: regForm.email,
+        password: regForm.password,
+      });
 
-      // --- Check duplicate email (try RPC, fallback to direct query) ---
-      let emailTaken = false;
-      try {
-        const { data: emailExists, error: rpcErr } = await supabase.rpc('check_email_exists', { p_email: regForm.email });
-        if (!rpcErr && emailExists) emailTaken = true;
-      } catch {
-        // RPC function may not exist — try direct query (may return empty due to RLS, which is OK)
-        const { data: existingUser } = await supabase.from('users').select('id').eq('email', regForm.email).maybeSingle();
-        if (existingUser) emailTaken = true;
-      }
-      if (emailTaken) {
-        throw new Error(lang === 'sw' ? "Barua pepe hii tayari imeshasajiliwa. Tafadhali ingia." : "This email is already registered. Please login.");
-      }
+      console.log('[Signup] signUp response:', { userId: data?.user?.id, session: !!data?.session, error: error?.message });
 
-      // --- Check duplicate NIDA ---
-      if (regForm.nationality === 'Mtanzania' && regForm.hasNida && regForm.nidaNumber) {
-        const cleanNida = regForm.nidaNumber.replace(/-/g, '');
-        let nidaTaken = false;
-        try {
-          const { data: nidaExists, error: rpcErr } = await supabase.rpc('check_nida_exists', { p_nida: cleanNida });
-          if (!rpcErr && nidaExists) nidaTaken = true;
-        } catch {
-          const { data: existingNida } = await supabase.from('users').select('id').eq('nida_number', cleanNida).maybeSingle();
-          if (existingNida) nidaTaken = true;
-        }
-        if (nidaTaken) {
-          throw new Error(lang === 'sw' ? "Namba hii ya NIDA tayari imeshasajiliwa." : "This NIDA number is already registered.");
-        }
-      }
-
-      console.log('[Signup] Creating auth user...');
-
-      // --- Create auth user (with 20s timeout) ---
-      const signUpResult = await Promise.race([
-        supabase.auth.signUp({ email: regForm.email, password: regForm.password }),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error(
-          lang === 'sw' ? 'Muda wa kusubiri umeisha. Tafadhali jaribu tena.' : 'Request timed out. Please try again.'
-        )), 20000))
-      ]);
-
-      const { data, error } = signUpResult;
       if (error) {
         console.error('[Signup] Auth error:', error.message);
+        if (error.message.includes('already registered')) {
+          throw new Error(lang === 'sw' ? "Barua pepe hii tayari imesajiliwa. Tafadhali ingia." : "This email is already registered. Please login.");
+        }
         throw error;
       }
 
-      console.log('[Signup] Auth user created:', data.user?.id, 'session:', !!data.session);
-
       if (!data.user) {
-        throw new Error(lang === 'sw' ? "Usajili umeshindwa. Barua pepe hii inaweza kuwa imesajiliwa tayari." : "Signup failed. This email may already be registered.");
+        console.error('[Signup] No user returned — email may already exist');
+        throw new Error(lang === 'sw' ? "Usajili umeshindwa. Barua pepe inaweza kuwa imesajiliwa tayari." : "Signup failed. Email may already be registered.");
       }
 
-      // --- Create profile ---
+      // ── Step 2: Create profile ────────────────────────────────────
+      console.log('[Signup] Step 2: Creating profile for user:', data.user.id);
       const isDiaspora = regForm.country !== 'Tanzania';
-      const profileData = {
-        p_id: data.user.id,
-        p_first_name: regForm.firstName.toUpperCase(),
-        p_middle_name: regForm.middleName.toUpperCase() || null,
-        p_last_name: regForm.lastName.toUpperCase(),
-        p_email: regForm.email,
-        p_phone: regForm.phone ? regForm.phone.replace(/[\s\-().]/g, '') : null,
-        p_sex: regForm.sex,
-        p_gender: regForm.sex,
-        p_date_of_birth: regForm.dateOfBirth || null,
-        p_place_of_birth: regForm.placeOfBirth || null,
-        p_marital_status: regForm.maritalStatus || null,
-        p_occupation: regForm.occupation || null,
-        p_education_level: regForm.educationLevel || null,
-        p_nationality: regForm.nationality === 'Mtanzania' ? 'Tanzanian' : 'Foreigner',
-        p_country_of_citizenship: regForm.nationality === 'Mtanzania' ? 'Tanzania' : regForm.countryOfCitizenship,
-        p_nida_number: regForm.hasNida ? regForm.nidaNumber.replace(/-/g, '') : null,
-        p_id_type: !regForm.hasNida ? (regForm.idType || null) : null,
-        p_id_number: !regForm.hasNida ? (regForm.idNumber || null) : null,
-        p_region: regForm.region || null,
-        p_district: regForm.district || null,
-        p_ward: regForm.ward || null,
-        p_street: regForm.street || null,
-        p_is_diaspora: isDiaspora,
-        p_country_of_residence: regForm.country || null,
-        p_passport_number: regForm.passportNumber || null,
-        p_is_verified: nidaVerified || isDiaspora || regForm.nationality === 'Mwingine'
+      const profileRow = {
+        id: data.user.id,
+        first_name: regForm.firstName.trim().toUpperCase(),
+        middle_name: regForm.middleName.trim().toUpperCase() || null,
+        last_name: regForm.lastName.trim().toUpperCase(),
+        email: regForm.email,
+        phone: regForm.phone ? regForm.phone.replace(/[\s\-().]/g, '') : null,
+        sex: regForm.sex,
+        gender: regForm.sex,
+        date_of_birth: regForm.dateOfBirth || null,
+        place_of_birth: regForm.placeOfBirth || null,
+        marital_status: regForm.maritalStatus || null,
+        occupation: regForm.occupation || null,
+        education_level: regForm.educationLevel || null,
+        nationality: regForm.nationality === 'Mtanzania' ? 'Tanzanian' : 'Foreigner',
+        country_of_citizenship: regForm.nationality === 'Mtanzania' ? 'Tanzania' : regForm.countryOfCitizenship,
+        nida_number: regForm.hasNida ? regForm.nidaNumber.replace(/-/g, '') : null,
+        id_type: !regForm.hasNida ? (regForm.idType || null) : null,
+        id_number: !regForm.hasNida ? (regForm.idNumber || null) : null,
+        region: regForm.region || null,
+        district: regForm.district || null,
+        ward: regForm.ward || null,
+        street: regForm.street || null,
+        is_diaspora: isDiaspora,
+        country_of_residence: regForm.country || null,
+        passport_number: regForm.passportNumber || null,
+        role: 'citizen',
+        is_verified: nidaVerified || isDiaspora || regForm.nationality === 'Mwingine',
       };
 
-      // Try RPC first (bypasses RLS), fall back to direct INSERT
-      let profileCreated = false;
+      // Try Method A: RPC function (bypasses RLS — works without session)
+      let profileOk = false;
       try {
-        const { error: rpcError } = await supabase.rpc('create_citizen_profile', profileData);
-        if (!rpcError) {
-          profileCreated = true;
-          console.log('[Signup] Profile created via RPC');
-        } else {
-          console.warn('[Signup] RPC failed, trying direct INSERT:', rpcError.message);
-        }
-      } catch {
-        console.warn('[Signup] RPC not available, trying direct INSERT');
-      }
-
-      if (!profileCreated) {
-        // Fallback: direct INSERT (works if session exists, i.e. email confirm disabled)
-        const { error: insertError } = await supabase.from('users').insert({
-          id: data.user.id,
-          first_name: regForm.firstName.toUpperCase(),
-          middle_name: regForm.middleName.toUpperCase() || null,
-          last_name: regForm.lastName.toUpperCase(),
-          email: regForm.email,
-          phone: regForm.phone ? regForm.phone.replace(/[\s\-().]/g, '') : null,
-          sex: regForm.sex, gender: regForm.sex,
-          date_of_birth: regForm.dateOfBirth || null,
-          place_of_birth: regForm.placeOfBirth || null,
-          marital_status: regForm.maritalStatus || null,
-          occupation: regForm.occupation || null,
-          education_level: regForm.educationLevel || null,
-          nationality: regForm.nationality === 'Mtanzania' ? 'Tanzanian' : 'Foreigner',
-          country_of_citizenship: regForm.nationality === 'Mtanzania' ? 'Tanzania' : regForm.countryOfCitizenship,
-          nida_number: regForm.hasNida ? regForm.nidaNumber.replace(/-/g, '') : null,
-          id_type: !regForm.hasNida ? (regForm.idType || null) : null,
-          id_number: !regForm.hasNida ? (regForm.idNumber || null) : null,
-          region: regForm.region, district: regForm.district,
-          ward: regForm.ward, street: regForm.street,
-          is_diaspora: isDiaspora,
-          country_of_residence: regForm.country,
-          passport_number: regForm.passportNumber,
-          role: 'citizen',
-          is_verified: nidaVerified || isDiaspora || regForm.nationality === 'Mwingine'
+        console.log('[Signup] Trying RPC create_citizen_profile...');
+        const { error: rpcErr } = await supabase.rpc('create_citizen_profile', {
+          p_id: profileRow.id, p_first_name: profileRow.first_name,
+          p_middle_name: profileRow.middle_name, p_last_name: profileRow.last_name,
+          p_email: profileRow.email, p_phone: profileRow.phone,
+          p_sex: profileRow.sex, p_gender: profileRow.gender,
+          p_date_of_birth: profileRow.date_of_birth, p_place_of_birth: profileRow.place_of_birth,
+          p_marital_status: profileRow.marital_status, p_occupation: profileRow.occupation,
+          p_education_level: profileRow.education_level, p_nationality: profileRow.nationality,
+          p_country_of_citizenship: profileRow.country_of_citizenship,
+          p_nida_number: profileRow.nida_number, p_id_type: profileRow.id_type,
+          p_id_number: profileRow.id_number, p_region: profileRow.region,
+          p_district: profileRow.district, p_ward: profileRow.ward,
+          p_street: profileRow.street, p_is_diaspora: profileRow.is_diaspora,
+          p_country_of_residence: profileRow.country_of_residence,
+          p_passport_number: profileRow.passport_number,
+          p_is_verified: profileRow.is_verified,
         });
-
-        if (insertError) {
-          console.error('[Signup] Direct INSERT also failed:', insertError);
-          // Auth user was created but profile wasn't — still show partial success
-          showToast(lang === 'sw'
-            ? 'Akaunti imeundwa! Wasifu utakamilishwa unapoingia kwa mara ya kwanza.'
-            : 'Account created! Your profile will be completed on first login.', 'info');
+        if (rpcErr) {
+          console.warn('[Signup] RPC failed:', rpcErr.message, '— trying direct INSERT');
         } else {
-          console.log('[Signup] Profile created via direct INSERT');
+          profileOk = true;
+          console.log('[Signup] Profile created via RPC ✓');
+        }
+      } catch (rpcCatch) {
+        console.warn('[Signup] RPC exception:', rpcCatch);
+      }
+
+      // Try Method B: Direct INSERT (works if session exists — email confirm OFF)
+      if (!profileOk) {
+        console.log('[Signup] Trying direct INSERT...');
+        const { error: insertErr } = await supabase.from('users').insert(profileRow);
+        if (insertErr) {
+          console.warn('[Signup] Direct INSERT failed:', insertErr.message);
+          // Profile creation failed entirely — auth user exists but no profile.
+          // This is OK — profile will be auto-created on first login.
+          console.log('[Signup] Profile will be created on first login instead');
+        } else {
+          profileOk = true;
+          console.log('[Signup] Profile created via direct INSERT ✓');
         }
       }
-      
-      showToast(lang === 'sw' ? 'Usajili umekamilika! Tafadhali kagua barua pepe yako kwa ajili ya uthibitisho.' : 'Signup successful! Please check your email for confirmation.', 'success');
+
+      // ── Step 3: Success ───────────────────────────────────────────
+      console.log('[Signup] ✅ DONE. Profile created:', profileOk);
+      showToast(
+        lang === 'sw'
+          ? 'Usajili umekamilika! Tafadhali kagua barua pepe yako kisha ingia.'
+          : 'Registration complete! Please check your email then login.',
+        'success'
+      );
       setMode('login');
       onClose();
+
     } catch (err: unknown) {
       const _e = err as { message?: string };
-      showToast(_e.message ?? 'An error occurred', 'error');
+      console.error('[Signup] ❌ ERROR:', _e.message, err);
+      showToast(_e.message ?? (lang === 'sw' ? 'Hitilafu imetokea' : 'An error occurred'), 'error');
     } finally {
       setLoading(false);
+      console.log('[Signup] Loading state reset');
     }
   };
+
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-0 sm:p-6">
