@@ -327,6 +327,11 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!regForm.firstName.trim() || !regForm.lastName.trim()) {
+      showToast(lang === 'sw' ? "Tafadhali ingiza jina la kwanza na la mwisho" : "Please enter your first and last name", 'error');
+      return;
+    }
     
     if (regForm.password !== regForm.confirmPassword) {
       showToast(lang === 'sw' ? "Nywila hazifanani" : "Passwords do not match", 'error');
@@ -903,8 +908,9 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                           type="text"
                           value={regForm.firstName}
                           onChange={(e) => updateRegForm('firstName', e.target.value)}
-                          readOnly={nidaVerified}
-                          className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium disabled:opacity-70"
+                          className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                          placeholder={lang === "sw" ? "Jina la Kwanza" : "First Name"}
+                          required
                           aria-label="First Name"
                         />
                       </div>
@@ -914,8 +920,8 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                           type="text"
                           value={regForm.middleName}
                           onChange={(e) => updateRegForm('middleName', e.target.value)}
-                          readOnly={nidaVerified}
-                          className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium disabled:opacity-70"
+                          className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                          placeholder={lang === "sw" ? "Jina la Kati" : "Middle Name"}
                           aria-label="Middle Name"
                         />
                       </div>
@@ -925,8 +931,9 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                           type="text"
                           value={regForm.lastName}
                           onChange={(e) => updateRegForm('lastName', e.target.value)}
-                          readOnly={nidaVerified}
-                          className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium disabled:opacity-70"
+                          className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                          placeholder={lang === "sw" ? "Jina la Mwisho" : "Last Name"}
+                          required
                           aria-label="Last Name"
                         />
                       </div>
@@ -939,7 +946,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                           <button
                             key={s}
                             type="button"
-                            onClick={() => !nidaVerified && updateRegForm('sex', s)}
+                            onClick={() => updateRegForm('sex', s)}
                             className={cn(
                               "flex-1 h-14 rounded-2xl font-bold border-2 transition-all",
                               regForm.sex === s ? "bg-emerald-50 border-emerald-600 text-emerald-600" : "bg-white border-stone-100 text-stone-400"
