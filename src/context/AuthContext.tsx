@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, UserProfile, Session } from '@/lib/supabase';
+import { IS_SUPABASE_CONFIGURED } from '@/lib/config';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -19,13 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  const isSupabaseConfigured =
-    !!supabaseUrl &&
-    !!supabaseAnonKey &&
-    !supabaseUrl.includes('YOUR_SUPABASE_URL') &&
-    !supabaseAnonKey.includes('YOUR_SUPABASE_ANON_KEY');
+  const isSupabaseConfigured = IS_SUPABASE_CONFIGURED;
 
   const buildFallbackUser = (sessionUser: any): UserProfile => ({
     id: sessionUser.id,

@@ -14,6 +14,7 @@ import {
   Search
 } from 'lucide-react';
 import { supabase, Application } from '@/lib/supabase';
+import { IS_SUPABASE_CONFIGURED } from '@/lib/config';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { StatCard } from '@/components/ui/StatCard';
@@ -44,8 +45,7 @@ export function StaffDashboard({ setView }: StaffDashboardProps) {
     setLoading(true);
     try {
       // Fetch stats
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const isConfigured = supabaseUrl && !supabaseUrl.includes('YOUR_SUPABASE_URL') && !supabaseUrl.includes('bqxevbmjqvogebmlbidx');
+      const isConfigured = IS_SUPABASE_CONFIGURED;
 
       if (!isConfigured || user?.id.startsWith('demo-')) {
         const demoApps = JSON.parse(localStorage.getItem('demo_applications') || '[]');

@@ -19,6 +19,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { supabase, UserProfile } from '@/lib/supabase';
+import { IS_SUPABASE_CONFIGURED } from '@/lib/config';
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
 import { TANZANIA_ADDRESS_DATA } from '@/lib/addressData';
@@ -231,8 +232,7 @@ export function StaffCitizenManagement() {
     setIsSubmitting(true);
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const isConfigured = supabaseUrl && !supabaseUrl.includes('YOUR_SUPABASE_URL') && !supabaseUrl.includes('bqxevbmjqvogebmlbidx');
+      const isConfigured = IS_SUPABASE_CONFIGURED;
 
       if (!isConfigured) {
         await new Promise(resolve => setTimeout(resolve, 1500));

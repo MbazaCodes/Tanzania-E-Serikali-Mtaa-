@@ -24,6 +24,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { supabase, UserProfile } from '@/lib/supabase';
+import { IS_SUPABASE_CONFIGURED } from '@/lib/config';
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
@@ -280,8 +281,7 @@ export function CitizenManagement() {
     
     setUpdating(true);
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const isConfigured = supabaseUrl && !supabaseUrl.includes('YOUR_SUPABASE_URL') && !supabaseUrl.includes('bqxevbmjqvogebmlbidx');
+      const isConfigured = IS_SUPABASE_CONFIGURED;
 
       if (!isConfigured) {
         // Demo mode - update localStorage
@@ -330,8 +330,7 @@ export function CitizenManagement() {
     if (!confirm(lang === 'sw' ? 'Je, una uhakika unataka kumfuta mwananchi huyu?' : 'Are you sure you want to delete this citizen?')) return;
     
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const isConfigured = supabaseUrl && !supabaseUrl.includes('YOUR_SUPABASE_URL') && !supabaseUrl.includes('bqxevbmjqvogebmlbidx');
+      const isConfigured = IS_SUPABASE_CONFIGURED;
 
       if (!isConfigured) {
         const demoCitizens = JSON.parse(localStorage.getItem('demo_citizens') || '[]');

@@ -13,6 +13,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { IS_SUPABASE_CONFIGURED } from '@/lib/config';
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
@@ -140,10 +141,7 @@ export function OfficeManagement() {
 
   // Computed properties
   const isSupabaseConfigured = useMemo(() => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    return supabaseUrl && 
-           !supabaseUrl.includes('YOUR_SUPABASE_URL') && 
-           !supabaseUrl.includes('bqxevbmjqvogebmlbidx');
+    return IS_SUPABASE_CONFIGURED;
   }, []);
 
   const filteredOffices = useMemo(() => {

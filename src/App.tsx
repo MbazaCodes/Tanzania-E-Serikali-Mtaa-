@@ -68,7 +68,7 @@ export default function App() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [showPublicVerify, setShowPublicVerify] = useState(false);
 
-  const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const isSupabaseConfigured = IS_SUPABASE_CONFIGURED;
 
   // Helper function to get the correct payment amount
   const getPaymentAmount = (app: Application): number => {
@@ -146,8 +146,7 @@ export default function App() {
     const serviceCode = getServiceCode(selectedService.name);
     const applicationNumber = `TZ-${serviceCode}-${dateStr}-${randomNum}`;
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const isConfigured = supabaseUrl && !supabaseUrl.includes('YOUR_SUPABASE_URL') && !supabaseUrl.includes('bqxevbmjqvogebmlbidx');
+    const isConfigured = IS_SUPABASE_CONFIGURED;
     
     // Create demo/offline application object
     const newApp = {
@@ -297,8 +296,7 @@ export default function App() {
   const handlePaymentSuccess = async (paymentData: any) => {
     if (!payingApplication) return;
     
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const isConfigured = supabaseUrl && !supabaseUrl.includes('YOUR_SUPABASE_URL') && !supabaseUrl.includes('bqxevbmjqvogebmlbidx');
+    const isConfigured = IS_SUPABASE_CONFIGURED;
 
     // Payment data to store
     const paymentInfo = {

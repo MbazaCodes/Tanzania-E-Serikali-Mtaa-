@@ -18,6 +18,7 @@ import {
   ThumbsUp
 } from 'lucide-react';
 import { supabase, Application } from '@/lib/supabase';
+import { IS_SUPABASE_CONFIGURED } from '@/lib/config';
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -42,8 +43,7 @@ export function CustomerSupport() {
     setApplication(null);
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const isConfigured = supabaseUrl && !supabaseUrl.includes('YOUR_SUPABASE_URL') && !supabaseUrl.includes('bqxevbmjqvogebmlbidx');
+      const isConfigured = IS_SUPABASE_CONFIGURED;
 
       if (!isConfigured || searchTerm.toUpperCase().startsWith('EMT-')) {
         const demoApps = JSON.parse(localStorage.getItem('demo_applications') || '[]');

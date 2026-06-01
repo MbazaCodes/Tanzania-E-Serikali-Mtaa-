@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, Application, UserProfile } from '@/lib/supabase';
+import { IS_SUPABASE_CONFIGURED } from '@/lib/config';
 import { HARDCODED_SERVICES } from '@/constants/services';
 
 const getServiceById = (serviceId: string) => {
@@ -22,8 +23,7 @@ export function useApplications(user: UserProfile | null) {
     setLoading(true);
     setError(null);
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const isConfigured = supabaseUrl && !supabaseUrl.includes('YOUR_SUPABASE_URL') && !supabaseUrl.includes('bqxevbmjqvogebmlbidx');
+    const isConfigured = IS_SUPABASE_CONFIGURED;
 
     if (!isConfigured || (user.id && user.id.startsWith('demo-'))) {
       await new Promise(resolve => setTimeout(resolve, 500));

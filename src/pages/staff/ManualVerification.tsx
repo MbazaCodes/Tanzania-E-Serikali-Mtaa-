@@ -14,6 +14,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { supabase, UserProfile } from '@/lib/supabase';
+import { IS_SUPABASE_CONFIGURED } from '@/lib/config';
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
@@ -33,8 +34,7 @@ export function ManualVerification() {
   const fetchUnverifiedUsers = async () => {
     setLoading(true);
     
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const isConfigured = supabaseUrl && !supabaseUrl.includes('YOUR_SUPABASE_URL') && !supabaseUrl.includes('bqxevbmjqvogebmlbidx');
+    const isConfigured = IS_SUPABASE_CONFIGURED;
 
     if (!isConfigured) {
       await new Promise(resolve => setTimeout(resolve, 1000));

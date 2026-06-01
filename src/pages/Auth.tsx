@@ -22,6 +22,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
 import { supabase, UserProfile } from '@/lib/supabase';
+import { IS_SUPABASE_CONFIGURED } from '@/lib/config';
 import { cn } from '@/lib/utils';
 import { TANZANIA_LOGO_URL } from '@/constants/services';
 
@@ -85,13 +86,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
 
   const updateRegForm = (key: string, value: any) => setRegForm((p) => ({ ...p, [key]: value }));
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-  const isSupabaseConfigured =
-    !!supabaseUrl &&
-    !!supabaseAnonKey &&
-    !supabaseUrl.includes('YOUR_SUPABASE_URL') &&
-    !supabaseAnonKey.includes('YOUR_SUPABASE_ANON_KEY');
+  const isSupabaseConfigured = IS_SUPABASE_CONFIGURED;
 
   const verifyNIDA = async () => {
     const cleanNida = regForm.nidaNumber.replace(/\D/g, '');
