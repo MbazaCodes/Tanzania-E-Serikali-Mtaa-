@@ -22,7 +22,7 @@ interface LandingProps {
 }
 
 export function Landing({ onShowAuth, onShowVerify }: LandingProps) {
-  const { lang, t } = useLanguage();
+  const { lang, setLang, t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-stone-50 selection:bg-emerald-100 selection:text-emerald-900">
@@ -43,6 +43,30 @@ export function Landing({ onShowAuth, onShowVerify }: LandingProps) {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4">
+            {/* Language switch */}
+            <div className="flex items-center gap-1 bg-stone-100 rounded-full p-1" role="group" aria-label="Language selector">
+              <button
+                onClick={() => setLang('sw')}
+                className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all ${
+                  lang === 'sw' ? 'bg-white shadow-sm text-emerald-700' : 'text-stone-500 hover:bg-stone-200'
+                }`}
+                aria-label="Badili kwa Kiswahili"
+                type="button"
+              >
+                SW
+              </button>
+              <button
+                onClick={() => setLang('en')}
+                className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all ${
+                  lang === 'en' ? 'bg-white shadow-sm text-emerald-700' : 'text-stone-500 hover:bg-stone-200'
+                }`}
+                aria-label="Switch to English"
+                type="button"
+              >
+                EN
+              </button>
+            </div>
+
             {onShowVerify && (
               <button 
                 onClick={onShowVerify}
