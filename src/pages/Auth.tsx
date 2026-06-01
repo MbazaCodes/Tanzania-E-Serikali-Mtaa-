@@ -1016,14 +1016,43 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                         <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
                           {lang === 'sw' ? 'Kazi / Shughuli' : 'Occupation'}
                         </label>
-                        <input 
-                          type="text"
+                        <select
                           value={regForm.occupation}
                           onChange={(e) => updateRegForm('occupation', e.target.value)}
                           className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
-                          placeholder={lang === 'sw' ? 'Mfano: Mfanyabiashara' : 'e.g. Business Owner'}
                           aria-label="Occupation"
-                        />
+                        >
+                          <option value="">{lang === 'sw' ? 'Chagua Kazi' : 'Select Occupation'}</option>
+                          <option value="mfanyabiashara">{lang === 'sw' ? 'Mfanyabiashara' : 'Business Owner'}</option>
+                          <option value="mwalimu">{lang === 'sw' ? 'Mwalimu' : 'Teacher'}</option>
+                          <option value="daktari">{lang === 'sw' ? 'Daktari' : 'Doctor'}</option>
+                          <option value="muuguzi">{lang === 'sw' ? 'Muuguzi' : 'Nurse'}</option>
+                          <option value="mhandisi">{lang === 'sw' ? 'Mhandisi' : 'Engineer'}</option>
+                          <option value="mwanasheria">{lang === 'sw' ? 'Mwanasheria' : 'Lawyer'}</option>
+                          <option value="mhasibu">{lang === 'sw' ? 'Mhasibu' : 'Accountant'}</option>
+                          <option value="askari_polisi">{lang === 'sw' ? 'Askari Polisi' : 'Police Officer'}</option>
+                          <option value="askari_jeshi">{lang === 'sw' ? 'Askari Jeshi' : 'Military Officer'}</option>
+                          <option value="mtumishi_serikali">{lang === 'sw' ? 'Mtumishi wa Serikali' : 'Government Employee'}</option>
+                          <option value="mkulima">{lang === 'sw' ? 'Mkulima' : 'Farmer'}</option>
+                          <option value="mvuvi">{lang === 'sw' ? 'Mvuvi' : 'Fisherman'}</option>
+                          <option value="mfugaji">{lang === 'sw' ? 'Mfugaji' : 'Livestock Keeper'}</option>
+                          <option value="fundi">{lang === 'sw' ? 'Fundi (Seremala/Mashi/Umeme)' : 'Technician / Artisan'}</option>
+                          <option value="dereva">{lang === 'sw' ? 'Dereva' : 'Driver'}</option>
+                          <option value="bodaboda">{lang === 'sw' ? 'Dereva Bodaboda / Bajaji' : 'Motorcycle / Bajaj Driver'}</option>
+                          <option value="mpishi">{lang === 'sw' ? 'Mpishi' : 'Cook / Chef'}</option>
+                          <option value="mchuuzi">{lang === 'sw' ? 'Mchuuzi / Muuzaji' : 'Vendor / Trader'}</option>
+                          <option value="mama_lishe">{lang === 'sw' ? 'Mama Lishe / Mama Ntilie' : 'Food Vendor'}</option>
+                          <option value="mtaalamu_ict">{lang === 'sw' ? 'Mtaalamu wa TEHAMA' : 'IT Professional'}</option>
+                          <option value="mwandishi">{lang === 'sw' ? 'Mwandishi wa Habari' : 'Journalist'}</option>
+                          <option value="mshauri">{lang === 'sw' ? 'Mshauri / Consultant' : 'Consultant'}</option>
+                          <option value="mfanyakazi_benki">{lang === 'sw' ? 'Mfanyakazi wa Benki' : 'Bank Employee'}</option>
+                          <option value="mfanyakazi_ngo">{lang === 'sw' ? 'Mfanyakazi wa NGO' : 'NGO Worker'}</option>
+                          <option value="mwanafunzi">{lang === 'sw' ? 'Mwanafunzi' : 'Student'}</option>
+                          <option value="mstaafu">{lang === 'sw' ? 'Mstaafu' : 'Retired'}</option>
+                          <option value="mama_nyumbani">{lang === 'sw' ? 'Mama wa Nyumbani' : 'Homemaker'}</option>
+                          <option value="hana_kazi">{lang === 'sw' ? 'Hana Kazi (Anasubiri)' : 'Unemployed (Job Seeker)'}</option>
+                          <option value="nyingine">{lang === 'sw' ? 'Nyingine' : 'Other'}</option>
+                        </select>
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
