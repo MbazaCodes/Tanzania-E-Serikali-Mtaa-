@@ -65,7 +65,8 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
     country: isDiaspora ? "" : "Tanzania", region: "", district: "", ward: "", street: "", phone: "", email: "", password: "", confirmPassword: "",
     lat: null as number | null, lng: null as number | null,
     isDiaspora: isDiaspora, countryOfResidence: "", passportNumber: "", countryOfCitizenship: "Tanzania",
-    hasNida: true, idType: "" as string, idNumber: "" as string
+    hasNida: true, idType: "" as string, idNumber: "" as string,
+    dateOfBirth: "", placeOfBirth: "", maritalStatus: "", occupation: "", educationLevel: ""
   });
 
   const formatNIDA = (value: string) => {
@@ -360,6 +361,11 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       return;
     }
 
+    if (!regForm.dateOfBirth) {
+      showToast(lang === 'sw' ? "Tafadhali ingiza tarehe ya kuzaliwa" : "Please enter your date of birth", 'error');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -406,6 +412,11 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
           phone: regForm.phone ? regForm.phone.replace(/[\s\-().]/g, '') : null,
           sex: regForm.sex,
           gender: regForm.sex,
+          date_of_birth: regForm.dateOfBirth || null,
+          place_of_birth: regForm.placeOfBirth ? regForm.placeOfBirth.toUpperCase() : null,
+          marital_status: regForm.maritalStatus || null,
+          occupation: regForm.occupation || null,
+          education_level: regForm.educationLevel || null,
           nationality: regForm.nationality === 'Mtanzania' ? 'Tanzanian' : 'Foreigner',
           country_of_citizenship: regForm.nationality === 'Mtanzania' ? 'Tanzania' : regForm.countryOfCitizenship,
           nida_number: regForm.hasNida ? regForm.nidaNumber.replace(/-/g, '') : null,
@@ -907,7 +918,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">{lang === 'sw' ? 'Jinsia' : 'Gender'}</label>
                       <div className="flex gap-4">
-                        {['Me', 'Ke'].map((s) => (
+                        {['M', 'F'].map((s) => (
                           <button
                             key={s}
                             type="button"
@@ -917,9 +928,94 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
                               regForm.sex === s ? "bg-emerald-50 border-emerald-600 text-emerald-600" : "bg-white border-stone-100 text-stone-400"
                             )}
                           >
-                            {s === 'Me' ? (lang === 'sw' ? 'Mwanaume' : 'Male') : (lang === 'sw' ? 'Mwanamke' : 'Female')}
+                            {s === 'M' ? (lang === 'sw' ? 'Mwanaume' : 'Male') : (lang === 'sw' ? 'Mwanamke' : 'Female')}
                           </button>
                         ))}
+                      </div>
+                    </div>
+
+                    {/* Date of Birth */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
+                          {lang === 'sw' ? 'Tarehe ya Kuzaliwa' : 'Date of Birth'} <span className="text-red-400">*</span>
+                        </label>
+                        <input 
+                          type="date"
+                          value={regForm.dateOfBirth}
+                          onChange={(e) => updateRegForm('dateOfBirth', e.target.value)}
+                          max={new Date().toISOString().split('T')[0]}
+                          className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                          aria-label="Date of Birth"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
+                          {lang === 'sw' ? 'Mahali pa Kuzaliwa' : 'Place of Birth'}
+                        </label>
+                        <input 
+                          type="text"
+                          value={regForm.placeOfBirth}
+                          onChange={(e) => updateRegForm('placeOfBirth', e.target.value)}
+                          className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                          placeholder={lang === 'sw' ? 'Mfano: Dar es Salaam' : 'e.g. Dar es Salaam'}
+                          aria-label="Place of Birth"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Marital Status, Occupation, Education */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
+                          {lang === 'sw' ? 'Hali ya Ndoa' : 'Marital Status'}
+                        </label>
+                        <select 
+                          value={regForm.maritalStatus}
+                          onChange={(e) => updateRegForm('maritalStatus', e.target.value)}
+                          className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                          aria-label="Marital Status"
+                        >
+                          <option value="">{lang === 'sw' ? 'Chagua' : 'Select'}</option>
+                          <option value="single">{lang === 'sw' ? 'Sijaoa/Sijaolewa' : 'Single'}</option>
+                          <option value="married">{lang === 'sw' ? 'Nimeoa/Nimeolewa' : 'Married'}</option>
+                          <option value="divorced">{lang === 'sw' ? 'Nimetaliki' : 'Divorced'}</option>
+                          <option value="widowed">{lang === 'sw' ? 'Mjane' : 'Widowed'}</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
+                          {lang === 'sw' ? 'Kazi / Shughuli' : 'Occupation'}
+                        </label>
+                        <input 
+                          type="text"
+                          value={regForm.occupation}
+                          onChange={(e) => updateRegForm('occupation', e.target.value)}
+                          className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                          placeholder={lang === 'sw' ? 'Mfano: Mfanyabiashara' : 'e.g. Business Owner'}
+                          aria-label="Occupation"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-500 uppercase tracking-widest ml-1">
+                          {lang === 'sw' ? 'Kiwango cha Elimu' : 'Education Level'}
+                        </label>
+                        <select 
+                          value={regForm.educationLevel}
+                          onChange={(e) => updateRegForm('educationLevel', e.target.value)}
+                          className="w-full h-14 px-4 bg-stone-50 border border-stone-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-medium"
+                          aria-label="Education Level"
+                        >
+                          <option value="">{lang === 'sw' ? 'Chagua' : 'Select'}</option>
+                          <option value="none">{lang === 'sw' ? 'Hakuna' : 'None'}</option>
+                          <option value="primary">{lang === 'sw' ? 'Msingi' : 'Primary'}</option>
+                          <option value="secondary">{lang === 'sw' ? 'Sekondari' : 'Secondary'}</option>
+                          <option value="diploma">{lang === 'sw' ? 'Diploma' : 'Diploma'}</option>
+                          <option value="degree">{lang === 'sw' ? 'Shahada' : 'Degree'}</option>
+                          <option value="masters">{lang === 'sw' ? 'Uzamili' : 'Masters'}</option>
+                          <option value="phd">{lang === 'sw' ? 'Uzamivu' : 'PhD'}</option>
+                        </select>
                       </div>
                     </div>
 
