@@ -155,8 +155,9 @@ export function CitizenManagement() {
       // Refresh citizens list to show updated data
       fetchCitizens();
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error approving change:', error);
-      showToast(error.message || (lang === 'sw' ? 'Hitilafu kuidhinisha' : 'Error approving change'), 'error');
+      showToast(_e.message ?? (lang === 'sw' ? 'Hitilafu kuidhinisha' : 'Error approving change'), 'error');
     }
   };
 
@@ -176,8 +177,9 @@ export function CitizenManagement() {
       setPendingChanges(prev => prev.filter(c => c.id !== change.id));
       showToast(lang === 'sw' ? 'Mabadiliko yamekataliwa' : 'Change rejected', 'info');
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error rejecting change:', error);
-      showToast(error.message || (lang === 'sw' ? 'Hitilafu kukataa' : 'Error rejecting change'), 'error');
+      showToast(_e.message ?? (lang === 'sw' ? 'Hitilafu kukataa' : 'Error rejecting change'), 'error');
     }
   };
 
@@ -235,7 +237,8 @@ export function CitizenManagement() {
       setCitizens(prev => prev.map(c => c.id === citizenId ? { ...c, is_verified: true } : c));
       showToast(lang === 'sw' ? 'Mwananchi amethibitishwa.' : 'Citizen verified successfully.', 'success');
     } catch (error: unknown) {
-      showToast(error.message, 'error');
+      const _e = error as { message?: string };
+      showToast(_e.message ?? 'An error occurred', 'error');
     }
   };
 
@@ -255,7 +258,8 @@ export function CitizenManagement() {
       setSelectedCitizen(null);
       showToast(lang === 'sw' ? 'Uhakiki umekataliwa.' : 'Verification declined.', 'info');
     } catch (error: unknown) {
-      showToast(error.message, 'error');
+      const _e = error as { message?: string };
+      showToast(_e.message ?? 'An error occurred', 'error');
     }
   };
 
@@ -317,7 +321,8 @@ export function CitizenManagement() {
       setEditingInfo(false);
       showToast(lang === 'sw' ? 'Taarifa zimesasishwa' : 'Information updated successfully', 'success');
     } catch (err: unknown) {
-      showToast(err.message, 'error');
+      const _e = err as { message?: string };
+      showToast(_e.message ?? 'An error occurred', 'error');
     } finally {
       setUpdating(false);
     }
@@ -352,7 +357,8 @@ export function CitizenManagement() {
       setSelectedCitizen(null);
       showToast(lang === 'sw' ? 'Mwananchi amefutwa' : 'Citizen deleted', 'success');
     } catch (err: unknown) {
-      showToast(err.message, 'error');
+      const _e = err as { message?: string };
+      showToast(_e.message ?? 'An error occurred', 'error');
     }
   };
 

@@ -127,8 +127,9 @@ export function StaffCitizenManagement() {
       showToast(lang === 'sw' ? 'Mabadiliko yameidhinishwa' : 'Change approved successfully', 'success');
       fetchCitizens();
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error approving change:', error);
-      showToast(error.message || (lang === 'sw' ? 'Hitilafu kuidhinisha' : 'Error approving change'), 'error');
+      showToast(_e.message ?? (lang === 'sw' ? 'Hitilafu kuidhinisha' : 'Error approving change'), 'error');
     }
   };
 
@@ -148,8 +149,9 @@ export function StaffCitizenManagement() {
       setPendingChanges(prev => prev.filter(c => c.id !== change.id));
       showToast(lang === 'sw' ? 'Mabadiliko yamekataliwa' : 'Change rejected', 'info');
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error rejecting change:', error);
-      showToast(error.message || (lang === 'sw' ? 'Hitilafu kukataa' : 'Error rejecting change'), 'error');
+      showToast(_e.message ?? (lang === 'sw' ? 'Hitilafu kukataa' : 'Error rejecting change'), 'error');
     }
   };
 
@@ -206,7 +208,8 @@ export function StaffCitizenManagement() {
       setCitizens(prev => prev.map(c => c.id === citizenId ? { ...c, is_verified: true } : c));
       showToast(lang === 'sw' ? 'Mwananchi amehakikiwa kikamilifu!' : 'Citizen verified successfully!', 'success');
     } catch (error: unknown) {
-      showToast(error.message, 'error');
+      const _e = error as { message?: string };
+      showToast(_e.message ?? 'An error occurred', 'error');
     }
   };
 
@@ -223,7 +226,8 @@ export function StaffCitizenManagement() {
       setCitizens(prev => prev.filter(c => c.id !== citizenId));
       showToast(lang === 'sw' ? 'Uhakiki umekataliwa.' : 'Verification declined.', 'success');
     } catch (error: unknown) {
-      showToast(error.message, 'error');
+      const _e = error as { message?: string };
+      showToast(_e.message ?? 'An error occurred', 'error');
     }
   };
 
@@ -274,7 +278,8 @@ export function StaffCitizenManagement() {
       throw new Error("Manual registration requires backend integration (Edge Functions). Please use Demo Mode for this feature.");
 
     } catch (error: unknown) {
-      showToast(error.message, 'error');
+      const _e = error as { message?: string };
+      showToast(_e.message ?? 'An error occurred', 'error');
     } finally {
       setIsSubmitting(false);
     }

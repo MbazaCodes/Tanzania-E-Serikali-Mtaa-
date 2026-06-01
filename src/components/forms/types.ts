@@ -4,7 +4,7 @@ import type { AnyFormData } from '@/types';
 export type FormLanguage = 'sw' | 'en';
 
 export interface FormProps {
-  onSubmit: (data: AnyFormData, files?: File[], signature?: string) => Promise<void> | void;
+  onSubmit: (data: Record<string, unknown>, files?: File[], signature?: string) => Promise<void> | void;
   isLoading?: boolean;
   lang?: FormLanguage;
   userProfile?: UserProfile | null;

@@ -8,7 +8,7 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: SupabaseError | null }>;
-  signUp: (email: string, password: string, userData: SignUpUserData) => Promise<{ error: SupabaseError | null; user: UserProfile | null }>;
+  signUp: (email: string, password: string, userData: SignUpUserData) => Promise<{ error: unknown; user: unknown }>;
   signOut: () => Promise<void>;
   updateUser: (data: Partial<UserProfile>) => Promise<{ error: SupabaseError | null }>;
   fetchUserProfile: (userId: string) => Promise<UserProfile | null>;

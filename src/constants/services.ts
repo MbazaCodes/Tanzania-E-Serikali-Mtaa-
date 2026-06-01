@@ -75,7 +75,7 @@ export const HARDCODED_SERVICES: Service[] = [
         {"label": "NYINGINEZO", "value": "NYINGINEZO"}
       ]}
     ],
-    diaspora_form_schema: null,
+    diaspora_form_schema: undefined,
     validity_months: 12,
     document_template: {
       "document_type": "UTAMBULISHO WA MKAZI",
@@ -102,9 +102,9 @@ export const HARDCODED_SERVICES: Service[] = [
       {"name": "date_of_death", "label": "Tarehe ya Kufariki", "type": "date", "required": true},
       {"name": "burial_location", "label": "Mahala pa Kuzika", "type": "text", "required": true},
       {"name": "family_representative", "label": "Mwakilishi wa Familia", "type": "text", "required": true},
-      {"name": "representative_phone", "label": "Simu ya Mwakilishi", "type": "tel", "required": true}
+      {"name": "representative_phone", "label": "Simu ya Mwakilishi", "type": "phone", "required": true}
     ],
-    diaspora_form_schema: null,
+    diaspora_form_schema: undefined,
     document_template: {
       "document_type": "KIBARI CHA MAZISHI",
       "header": {
@@ -139,9 +139,9 @@ export const HARDCODED_SERVICES: Service[] = [
       {"name": "event_location", "label": "Mahali pa Sherehe", "type": "text", "required": true},
       {"name": "expected_guests", "label": "Idadi ya Wageni", "type": "number"},
       {"name": "event_duration", "label": "Muda wa Sherehe (masaa)", "type": "number", "required": true},
-      {"name": "organizer_phone", "label": "Namba ya Simu ya Mpangaji", "type": "tel", "required": true}
+      {"name": "organizer_phone", "label": "Namba ya Simu ya Mpangaji", "type": "phone", "required": true}
     ],
-    diaspora_form_schema: null,
+    diaspora_form_schema: undefined,
     document_template: {
       "document_type": "KIBARI CHA SHEREHE",
       "header": {
@@ -180,7 +180,7 @@ export const HARDCODED_SERVICES: Service[] = [
       {"name": "end_date", "label": "Tarehe ya Kukamilika (Inayokadiriwa)", "type": "date", "required": true},
       {"name": "section_contractor", "label": "TAARIFA ZA FUNDI/MKANDARASI", "type": "header"},
       {"name": "contractor_name", "label": "Jina la Fundi/Mkandarasi", "type": "text", "required": true},
-      {"name": "contractor_phone", "label": "Simu ya Fundi/Mkandarasi", "type": "tel", "required": true},
+      {"name": "contractor_phone", "label": "Simu ya Fundi/Mkandarasi", "type": "phone", "required": true},
       {"name": "section_neighbors", "label": "IDHINI YA MAJIRANI", "type": "header"},
       {"name": "neighbors_notified", "label": "Je, majirani wamearifiwa?", "type": "select", "required": true, "options": [
         {"label": "NDIYO - Wamearifiwa", "value": "YES"},
@@ -188,7 +188,7 @@ export const HARDCODED_SERVICES: Service[] = [
       ]},
       {"name": "neighbors_consent", "label": "Maelezo ya Idhini ya Majirani", "type": "textarea", "showIf": {"field": "neighbors_notified", "value": "YES"}}
     ],
-    diaspora_form_schema: null,
+    diaspora_form_schema: undefined,
     document_template: {
       "document_type": "KIBARI CHA UJEZI MDOGO",
       "header": {
@@ -255,7 +255,7 @@ export const HARDCODED_SERVICES: Service[] = [
       {"name": "institution_2_address", "label": "Taasisi ya 2 - Anwani", "type": "text", "showIf": {"field": "num_extra_addresses", "values": ["1","2","3","4","5"]}},
       {"name": "additional_info", "label": "Maelezo ya Ziada", "type": "textarea"}
     ],
-    diaspora_form_schema: null,
+    diaspora_form_schema: undefined,
     extra_address_fee: 1000,
     document_template: {
       "document_type": "BARUA YA UTAMBULISHO",

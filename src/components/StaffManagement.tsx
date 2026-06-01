@@ -302,7 +302,9 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
         fetchStaff();
       }
     } catch (err: unknown) {
-      showToast(err.message, 'error');
+      const _e = err as { message?: string };
+      const _err = err as { message?: string };
+      showToast(_err.message ?? "", 'error');
     } finally {
       setLoading(false);
     }
@@ -325,7 +327,9 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
       if (error) throw error;
       showToast(lang === 'sw' ? 'Huduma zimeingizwa kikamilifu!' : 'Services seeded successfully!', 'success');
     } catch (err: unknown) {
-      showToast(err.message, 'error');
+      const _e = err as { message?: string };
+      const _err = err as { message?: string };
+      showToast(_err.message ?? "", 'error');
     } finally {
       setSeeding(false);
     }
@@ -348,7 +352,9 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
       setSelectedStaff(null);
       fetchStaff();
     } catch (err: unknown) {
-      showToast(err.message, 'error');
+      const _e = err as { message?: string };
+      const _err = err as { message?: string };
+      showToast(_err.message ?? "", 'error');
     }
   };
 
@@ -382,7 +388,9 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
       setSelectedStaff({ ...selectedStaff, role: editFormData.role });
       fetchStaff();
     } catch (err: unknown) {
-      showToast(err.message, 'error');
+      const _e = err as { message?: string };
+      const _err = err as { message?: string };
+      showToast(_err.message ?? "", 'error');
     } finally {
       setUpdating(false);
     }
@@ -414,7 +422,9 @@ export const StaffManagement: React.FC<StaffManagementProps> = ({ lang }) => {
       });
       fetchStaff();
     } catch (err: unknown) {
-      showToast(err.message, 'error');
+      const _e = err as { message?: string };
+      const _err = err as { message?: string };
+      showToast(_err.message ?? "", 'error');
     } finally {
       setUpdating(false);
     }

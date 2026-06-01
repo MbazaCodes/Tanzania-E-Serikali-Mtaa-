@@ -264,9 +264,10 @@ export function LocationManagement() {
       resetForm();
       await fetchLocations();
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error saving location:', error);
       showToast(
-        error.message || (lang === 'sw' ? 'Hitilafu ya kuhifadhi' : 'Error saving location'),
+        _e.message || (lang === 'sw' ? 'Hitilafu ya kuhifadhi' : 'Error saving location'),
         'error'
       );
     } finally {
@@ -310,9 +311,10 @@ export function LocationManagement() {
       );
       await fetchLocations();
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error deleting location:', error);
       showToast(
-        error.message || (lang === 'sw' ? 'Hitilafu ya kufuta' : 'Error deleting location'),
+        _e.message || (lang === 'sw' ? 'Hitilafu ya kufuta' : 'Error deleting location'),
         'error'
       );
     } finally {

@@ -51,7 +51,7 @@ export const PaymentGateway: React.FC<PaymentGatewayProps> = ({
     cvv: '',
     name: ''
   });
-  const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
+  const [paymentResult, setPaymentResult] = useState<Record<string, unknown> | null>(null);
 
   const handlePayment = async () => {
     setStep('processing');
@@ -351,18 +351,18 @@ export const PaymentGateway: React.FC<PaymentGatewayProps> = ({
                   <div className="bg-stone-50 rounded-xl p-4 text-left space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-stone-500">{lang === 'sw' ? 'Namba ya Muamala:' : 'Transaction ID:'}</span>
-                      <span className="font-bold text-stone-900">{paymentResult.transaction_id}</span>
+                      <span className="font-bold text-stone-900">{(paymentResult as Record<string, unknown>).transaction_id as string}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-stone-500">{lang === 'sw' ? 'Kiasi:' : 'Amount:'}</span>
-                      <span className="font-bold text-emerald-600">{formatCurrency(paymentResult.amount, currency)}</span>
+                      <span className="font-bold text-emerald-600">{formatCurrency((paymentResult as Record<string, unknown>).amount as number, currency)}</span>
                     </div>
                   </div>
                 )}
                 
                 <div className="pt-4">
                   <button 
-                    onClick={() => onSuccess(paymentResult)}
+                    onClick={() => onSuccess(paymentResult as unknown as import('@/types').PaymentResult)}
                     className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all"
                   >
                     {lang === 'sw' ? 'Endelea' : 'Continue'}

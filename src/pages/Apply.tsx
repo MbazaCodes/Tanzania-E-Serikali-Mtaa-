@@ -13,7 +13,7 @@ import { SERVICE_FORMS, hasServiceForm } from '@/components/forms';
 interface ApplyProps {
   selectedService: Service;
   onBack: () => void;
-  onSubmit: (formData: AnyFormData) => void;
+  onSubmit: (formData: Record<string, unknown>) => void;
   draft?: ApplicationDraft | null;
 }
 

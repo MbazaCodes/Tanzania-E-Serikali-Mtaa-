@@ -210,7 +210,7 @@ export const DocumentPDF: React.FC<DocumentPDFProps> = ({ application, lang }) =
     if (!template?.subject) return "";
     return template.subject
       .replace('[FULL_NAME]', `${user?.first_name} ${user?.last_name}`)
-      .replace('[HOUSE_NUMBER]', application.form_data?.house_number || '');
+      .replace('[HOUSE_NUMBER]', (application.form_data as Record<string, unknown>)?.house_number as string | undefined || '');
   };
 
   return (

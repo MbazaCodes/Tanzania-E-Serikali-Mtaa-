@@ -142,7 +142,7 @@ export const KibariShereheForm: React.FC<FormProps> = ({
 
   const confirmSubmit = () => {
     if (formData) {
-      onSubmit(formData);
+      onSubmit(formData as unknown as Record<string, unknown>);
     }
   };
 

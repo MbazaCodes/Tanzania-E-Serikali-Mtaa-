@@ -5,12 +5,15 @@ import { useAuth } from '@/context/AuthContext';
 import { Users, CheckCircle, XCircle, Eye, Loader2, Clock, User, MapPin, DollarSign, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/currency';
+// Safe form_data field accessor for JSX rendering
+const fd = (data: Record<string, unknown>, key: string): string => String(data?.[key] ?? '');
+
 
 interface PendingApproval {
   id: string;
   application_number: string;
   service_name: string;
-  form_data: AnyFormData;
+  form_data: Record<string, unknown>;  // dynamic fields accessed via cast
   user_id: string;
   created_at: string;
   submitter?: {
@@ -234,22 +237,22 @@ export const PendingApprovals: React.FC<PendingApprovalsProps> = ({ lang = 'sw' 
 
                 {/* Key details */}
                 <div className="flex items-center gap-4 text-sm text-stone-600">
-                  {approval.form_data?.monthly_rent && (
+                  {Boolean(approval.form_data?.monthly_rent) && (
                     <span className="flex items-center gap-1">
                       <DollarSign className="h-4 w-4" />
-                      {formatCurrency(approval.form_data.monthly_rent)}/mwezi
+                      {formatCurrency(Number(approval.form_data["monthly_rent"] ?? 0))}/mwezi
                     </span>
                   )}
-                  {approval.form_data?.sale_price && (
+                  {Boolean(approval.form_data?.sale_price) && (
                     <span className="flex items-center gap-1">
                       <DollarSign className="h-4 w-4" />
-                      {formatCurrency(approval.form_data.sale_price)}
+                      {formatCurrency(Number(approval.form_data["sale_price"] ?? 0))}
                     </span>
                   )}
-                  {approval.form_data?.street && (
+                  {Boolean(approval.form_data?.street) && (
                     <span className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      {approval.form_data.street}
+                      {fd(approval.form_data, "street")}
                     </span>
                   )}
                 </div>
@@ -339,12 +342,12 @@ export const PendingApprovals: React.FC<PendingApprovalsProps> = ({ lang = 'sw' 
               </div>
 
               {/* Approval note if any */}
-              {selectedApproval.form_data?.approval_note && (
+              {Boolean(selectedApproval.form_data?.approval_note) && (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                   <p className="text-sm font-semibold text-blue-700 mb-1">
                     {lang === 'sw' ? 'Ujumbe kutoka kwa mtumaji:' : 'Message from submitter:'}
                   </p>
-                  <p className="text-blue-800">{selectedApproval.form_data.approval_note}</p>
+                  <p className="text-blue-800">{String(selectedApproval.form_data.approval_note ?? "")}</p>
                 </div>
               )}
             </div>

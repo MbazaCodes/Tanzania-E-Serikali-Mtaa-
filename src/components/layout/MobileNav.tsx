@@ -180,7 +180,7 @@ export function MobileNav({ isOpen, onClose, currentView, setView }: MobileNavPr
                 <button
                   key={item.id}
                   onClick={() => {
-                    setView(item.view);
+                    setView(item.view as import('@/types').ViewName);
                     onClose();
                   }}
                   className={cn(

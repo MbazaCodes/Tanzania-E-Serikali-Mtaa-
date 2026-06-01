@@ -449,9 +449,10 @@ export function ServiceManagement() {
       resetForm();
       await fetchServices();
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error saving service:', error);
       showToast(
-        error.message || (lang === 'sw' ? 'Hitilafu ya kuhifadhi' : 'Error saving service'),
+        _e.message || (lang === 'sw' ? 'Hitilafu ya kuhifadhi' : 'Error saving service'),
         'error'
       );
     } finally {
@@ -497,9 +498,10 @@ export function ServiceManagement() {
       );
       await fetchServices();
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error deleting service:', error);
       showToast(
-        error.message || (lang === 'sw' ? 'Hitilafu ya kufuta' : 'Error deleting service'),
+        _e.message || (lang === 'sw' ? 'Hitilafu ya kufuta' : 'Error deleting service'),
         'error'
       );
     } finally {
@@ -543,9 +545,10 @@ export function ServiceManagement() {
       );
       await fetchServices();
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error toggling service status:', error);
       showToast(
-        error.message || (lang === 'sw' ? 'Hitilafu' : 'Error'),
+        _e.message || (lang === 'sw' ? 'Hitilafu' : 'Error'),
         'error'
       );
     } finally {

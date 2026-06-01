@@ -503,7 +503,7 @@ export const UtambulishoMkaziForm: React.FC<FormProps> = ({
       localStorage.removeItem(draftKey);
     }
 
-    await Promise.resolve(onSubmit(submitData));
+    await Promise.resolve(onSubmit(submitData as unknown as Record<string, unknown>));
   };
 
   const handlePrint = () => {

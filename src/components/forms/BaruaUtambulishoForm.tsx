@@ -432,7 +432,7 @@ export const BaruaUtambulishoForm: React.FC<FormProps> = ({
   const confirmSubmit = async () => {
     if (!mkaziRecord) return;
     const submitData = formData ?? getValues();
-    await Promise.resolve(onSubmit(submitData));
+    await Promise.resolve(onSubmit(submitData as unknown as Record<string, unknown>));
   };
 
   const inputClass = "w-full p-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all bg-white";

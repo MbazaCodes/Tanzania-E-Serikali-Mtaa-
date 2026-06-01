@@ -111,7 +111,8 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       // The API response should return verified name fields to pre-fill below.
       // setRegForm(prev => ({ ...prev, firstName: res.first_name, ... }));
     } catch (err: unknown) {
-      setNidaError(err.message);
+      const _e = err as { message?: string };
+      setNidaError(_e.message ?? null);
     } finally {
       setNidaVerifying(false);
     }
@@ -149,15 +150,15 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       // --- Handle auth response ---
 
       if (error) {
-        console.error('Supabase auth error:', error.message, error.status);
+        console.error('Supabase auth error:', (error as { message?: string; status?: number }).message, (error as { status?: number }).status);
         // 404/503/0 = project paused or infrastructure down
         if (error.status === 404 || error.status === 503 || error.status === 0) {
           throw unreachableError;
         }
-        if (error.message.includes('Email not confirmed')) {
+        if ((error.message ?? '').includes('Email not confirmed')) {
           throw new Error(lang === 'sw' ? 'Barua pepe yako bado haijathibitishwa. Tafadhali kagua barua pepe yako.' : 'Your email is not confirmed yet. Please check your inbox.');
         }
-        if (error.message.includes('Invalid login credentials')) {
+        if ((error.message ?? '').includes('Invalid login credentials')) {
           throw new Error(lang === 'sw' ? 'Barua pepe au nywila si sahihi.' : 'Incorrect email or password.');
         }
         throw error;
@@ -210,8 +211,9 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
 
       onClose();
     } catch (err: unknown) {
+      const _e = err as { message?: string };
       console.error('Login error:', err);
-      const isNetworkError = err.name === 'TypeError' || err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError');
+      const isNetworkError = (_e as { name?: string }).name === 'TypeError' || _e.message?.includes('Failed to fetch') || _e.message?.includes('NetworkError');
       const isTimeout = !!(err as any).__isTimeout;
       if (isNetworkError || isTimeout) {
         showToast(
@@ -221,7 +223,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
           'error'
         );
       } else {
-        showToast(err.message || 'Login failed. Please try again.', 'error');
+        showToast(_e.message ?? 'Login failed. Please try again.', 'error');
       }
     } finally {
       setLoading(false);
@@ -235,7 +237,7 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
         redirectTo: window.location.origin
       }
     });
-    if (error) showToast(error.message, 'error');
+    if (error) showToast((error as { message?: string }).message ?? 'Error', 'error');
   };
 
   const handleVerifySecurity = async (e: React.FormEvent) => {
@@ -260,7 +262,8 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
 
       setForgotPasswordStep(2);
     } catch (err: unknown) {
-      showToast(err.message, 'error');
+      const _e = err as { message?: string };
+      showToast(_e.message ?? 'An error occurred', 'error');
     } finally {
       setLoading(false);
     }
@@ -287,7 +290,8 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       setShowForgotPassword(false);
       setMode('login');
     } catch (err: unknown) {
-      showToast(err.message, 'error');
+      const _e = err as { message?: string };
+      showToast(_e.message ?? 'An error occurred', 'error');
     } finally {
       setLoading(false);
     }
@@ -388,7 +392,8 @@ export function Auth({ mode, onClose, setMode, isDiaspora = false }: AuthProps) 
       setMode('login');
       onClose();
     } catch (err: unknown) {
-      showToast(err.message, 'error');
+      const _e = err as { message?: string };
+      showToast(_e.message ?? 'An error occurred', 'error');
     } finally {
       setLoading(false);
     }

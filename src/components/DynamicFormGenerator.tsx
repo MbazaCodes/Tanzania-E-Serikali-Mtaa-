@@ -5,7 +5,7 @@ import * as z from 'zod';
 import { cn } from '@/lib/utils';
 import { Upload, X, FileText, Loader2, ArrowRight, User, Users, UserPlus, RefreshCw, Search, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import type { FormField, FormFieldOption, AnyFormData, ApplicationDraft } from '@/types';
+import type { AnyFormData } from '@/types';
 
 interface FormField {
   name: string;
@@ -44,8 +44,9 @@ interface UserProfile {
 
 interface DynamicFormProps {
   schema: FormField[];
-  onSubmit: (data: AnyFormData, attachments: string[], applicantType: string, representativeName?: string) => void;
-  initialData?: Partial<AnyFormData>;
+  // data is typed as Record internally (dynamic Zod schema); cast to AnyFormData at call site
+  onSubmit: (data: Record<string, unknown>, attachments: string[], applicantType: string, representativeName?: string) => void;
+  initialData?: Record<string, unknown>;
   isLoading?: boolean;
   lang?: 'sw' | 'en';
   userProfile?: UserProfile | null;
@@ -97,7 +98,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
   }>>({});
 
   // Generate Zod schema dynamically
-  const shape: Record<string, unknown> = {};
+  const shape: Record<string, import('zod').ZodTypeAny> = {};
   schema.forEach((field) => {
     if (field.type === 'header') return; // Skip headers in validation
     if (field.disabled) return; // Skip disabled (auto-calculated) fields from validation
@@ -414,7 +415,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
     }
   };
 
-  const onFormSubmit = (data: Record<string, unknown>) => {
+  const onFormSubmit = (data: Record<string, unknown>) => {  // typed loosely; cast to AnyFormData at submit
     
     // Include minor data if applicable
     const enrichedData = {
@@ -787,7 +788,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
                       return (
                         <textarea
                           onChange={onChange}
-                          value={value || ''}
+                          value={(value as string) || ''}
                           placeholder={field.placeholder}
                           aria-label={field.label}
                           className="p-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none min-h-25 transition-all"
@@ -797,7 +798,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
                       return (
                         <select
                           onChange={onChange}
-                          value={value || ''}
+                          value={(value as string) || ''}
                           aria-label={field.label}
                           className="p-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white transition-all"
                         >
@@ -813,7 +814,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
                       return (
                         <input
                           type="checkbox"
-                          checked={value || false}
+                          checked={(value as boolean) || false}
                           onChange={(e) => onChange(e.target.checked)}
                           aria-label={field.label}
                           className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500"
@@ -824,7 +825,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
                         <input
                           type="time"
                           onChange={onChange}
-                          value={value || ''}
+                          value={(value as string) || ''}
                           aria-label={field.label}
                           className="p-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                         />
@@ -834,7 +835,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
                         <input
                           type="datetime-local"
                           onChange={onChange}
-                          value={value || ''}
+                          value={(value as string) || ''}
                           aria-label={field.label}
                           className="p-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                         />
@@ -844,7 +845,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
                         <input
                           type="url"
                           onChange={onChange}
-                          value={value || ''}
+                          value={(value as string) || ''}
                           placeholder={field.placeholder || 'https://...'}
                           className="p-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                         />
@@ -902,14 +903,14 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
                             <input
                               type="text"
                               onChange={onChange}
-                              value={value || ''}
+                              value={(value as string) || ''}
                               placeholder={lang === 'sw' ? 'Ingiza NIDA ya upande mwingine' : 'Enter other party NIDA'}
                               aria-label={field.label}
                               className="flex-1 p-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                             />
                             <button
                               type="button"
-                              onClick={() => handleNidaLookup(field.name, value)}
+                              onClick={() => handleNidaLookup(field.name, value as string)}
                               disabled={lookupState?.searching}
                               aria-label={lang === 'sw' ? 'Tafuta mtumiaji' : 'Search user'}
                               className="px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-semibold flex items-center gap-2 transition-all"
@@ -981,14 +982,14 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
                             <input
                               type="text"
                               onChange={(e) => onChange(e.target.value.toUpperCase())}
-                              value={value || ''}
+                              value={(value as string) || ''}
                               placeholder="CT2026A12345"
                               aria-label={field.label}
                               className="flex-1 p-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all font-mono uppercase tracking-wider"
                             />
                             <button
                               type="button"
-                              onClick={() => handleCitizenIdLookup(field.name, value)}
+                              onClick={() => handleCitizenIdLookup(field.name, value as string)}
                               disabled={citizenLookupState?.searching}
                               aria-label={lang === 'sw' ? 'Tafuta mtumiaji' : 'Search user'}
                               className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white rounded-xl font-semibold flex items-center gap-2 transition-all"
@@ -1066,7 +1067,7 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
                         <input
                           type={field.type}
                           onChange={(e) => onChange(field.type === 'number' ? Number(e.target.value) : e.target.value)}
-                          value={value || ''}
+                          value={(value as string) || ''}
                           placeholder={field.placeholder}
                           disabled={field.disabled}
                           className={cn(
@@ -1162,8 +1163,9 @@ export const DynamicFormGenerator: React.FC<DynamicFormProps> = ({
 };
 interface DynamicFormProps {
   schema: FormField[];
-  onSubmit: (data: AnyFormData, attachments: string[], applicantType: string, representativeName?: string) => void;
-  initialData?: Partial<AnyFormData>;
+  // data is typed as Record internally (dynamic Zod schema); cast to AnyFormData at call site
+  onSubmit: (data: Record<string, unknown>, attachments: string[], applicantType: string, representativeName?: string) => void;
+  initialData?: Record<string, unknown>;
   isLoading?: boolean;
   lang?: 'sw' | 'en';
   userProfile?: UserProfile | null;

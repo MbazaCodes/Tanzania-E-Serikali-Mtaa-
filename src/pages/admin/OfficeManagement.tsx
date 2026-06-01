@@ -402,9 +402,10 @@ export function OfficeManagement() {
       resetForm();
       await fetchOffices();
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error saving office:', error);
       showToast(
-        error.message || (lang === 'sw' ? 'Hitilafu ya kuhifadhi' : 'Error saving office'),
+        _e.message || (lang === 'sw' ? 'Hitilafu ya kuhifadhi' : 'Error saving office'),
         'error'
       );
     } finally {
@@ -450,9 +451,10 @@ export function OfficeManagement() {
       );
       await fetchOffices();
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error deleting office:', error);
       showToast(
-        error.message || (lang === 'sw' ? 'Hitilafu ya kufuta' : 'Error deleting office'),
+        _e.message || (lang === 'sw' ? 'Hitilafu ya kufuta' : 'Error deleting office'),
         'error'
       );
     } finally {
@@ -496,9 +498,10 @@ export function OfficeManagement() {
       );
       await fetchOffices();
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error toggling office status:', error);
       showToast(
-        error.message || (lang === 'sw' ? 'Hitilafu' : 'Error'),
+        _e.message || (lang === 'sw' ? 'Hitilafu' : 'Error'),
         'error'
       );
     } finally {

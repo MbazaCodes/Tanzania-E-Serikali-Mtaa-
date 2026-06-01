@@ -1014,9 +1014,10 @@ export function Profile() {
       await fetchCompleteProfile();
       await fetchPendingChanges();
     } catch (error: unknown) {
+      const _e = error as { message?: string };
       console.error('Error saving profile:', error);
       showToast(
-        error.message || (lang === 'sw' ? 'Hitilafu kuhifadhi wasifu' : 'Error saving profile'),
+        _e.message || (lang === 'sw' ? 'Hitilafu kuhifadhi wasifu' : 'Error saving profile'),
         'error'
       );
     } finally {

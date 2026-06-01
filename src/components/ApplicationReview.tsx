@@ -1,18 +1,20 @@
 import React from 'react';
 import { UserProfile } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
 import { ClipboardCheck } from 'lucide-react';
 
 interface ApplicationReviewProps {
   lang: string;
-  user: UserProfile;
+  user?: UserProfile | null;  // optional – component reads from useAuth internally
 }
 
-export function ApplicationReview({ lang, user }: ApplicationReviewProps) {
+export function ApplicationReview({ lang }: ApplicationReviewProps) {
+  const { user } = useAuth();
   const title = lang === 'sw' ? 'Uhakiki wa Maombi' : 'Application Review';
   const subtitle = lang === 'sw'
-    ? `Karibu ${user?.full_name || ''}. Hapa unaweza kuhakiki maombi yaliyowasilishwa.`
-    : `Welcome ${user?.full_name || ''}. You can review submitted applications here.`;
+    ? `Karibu ${`${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim()}. Hapa unaweza kuhakiki maombi yaliyowasilishwa.`
+    : `Welcome ${`${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim()}. You can review submitted applications here.`;
 
   return (
     <motion.div

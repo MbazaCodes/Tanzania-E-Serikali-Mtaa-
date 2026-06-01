@@ -1,13 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Home, ArrowLeft, Search, HelpCircle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
-interface NotFoundProps {
-  onNavigate: (view: 'dashboard' | 'services') => void;
-}
-
-export function NotFound({ onNavigate }: NotFoundProps) {
+export function NotFound() {
+  const navigate = useNavigate();
+  const onNavigate = (view: 'dashboard' | 'services') => navigate(view === 'dashboard' ? '/dashboard' : '/services');
   const { lang } = useLanguage();
 
   return (

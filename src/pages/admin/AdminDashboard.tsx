@@ -234,11 +234,11 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
       if (usersCount.error) console.error('Users error:', usersCount.error);
 
       // Helper function to calculate revenue from applications
-      const calculateRevenueFromApps = (apps: import('@/lib/supabase').Application[] | null): number => {
+      const calculateRevenueFromApps = (apps: Array<{ form_data: Record<string, unknown>; service_id: string }> | null): number => {
         if (!apps) return 0;
         return apps.reduce((acc, app) => {
           // First check payment_data.amount in form_data
-          const paymentAmount = app.form_data?.payment_data?.amount;
+          const paymentAmount = (app.form_data as Record<string, { amount?: number }>)?.["payment_data"]?.amount;
           if (paymentAmount && typeof paymentAmount === 'number') {
             return acc + paymentAmount;
           }
@@ -283,7 +283,7 @@ export function AdminDashboard({ setView }: { setView?: (view: string) => void }
         
         // Use hardcoded services count if database has no services
         totalServices: (servicesCount.count || 0) > 0 ? servicesCount.count! : HARDCODED_SERVICES.length,
-        activeServices: (activeServicesCount.count || 0) > 0 ? activeServicesCount.count! : HARDCODED_SERVICES.filter(s => s.is_active ?? s.active).length,
+        activeServices: (activeServicesCount.count || 0) > 0 ? activeServicesCount.count! : HARDCODED_SERVICES.filter(s => s.active ?? s.active).length,
         totalCategories: categoriesCount.count || 4, // Default to 4 categories
         
         totalRegions: regionsCount.count || 0,

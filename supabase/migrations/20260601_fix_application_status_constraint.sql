@@ -14,7 +14,8 @@ ALTER TABLE public.applications ADD CONSTRAINT applications_status_check
         'approved',
         'issued',
         'returned',
-        'rejected'
+        'rejected',
+        'refunded'
     ));
 
 COMMENT ON COLUMN public.applications.status IS

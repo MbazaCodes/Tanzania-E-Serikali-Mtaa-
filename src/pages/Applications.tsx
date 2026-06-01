@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { supabase, Application } from '../lib/supabase';
+import type { ApplicationDraft } from '../types';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { ApplicationProgressBar } from '../components/ui/ApplicationProgressBar';
 import { formatCurrency } from '../lib/currency';
@@ -71,8 +72,8 @@ export function Applications({ applications, drafts = [], onPay, onRefresh, onRe
       if (!isNaN(parsed)) baseFee = parsed;
     }
 
-    if (extraAddressFee > 0 && app.form_data?.num_extra_addresses) {
-      const numExtra = parseInt(app.form_data.num_extra_addresses) || 0;
+    if (extraAddressFee > 0 && Number((app.form_data as Record<string,unknown>)?.["num_extra_addresses"] ?? 0)) {
+      const numExtra = parseInt(String((app.form_data as Record<string,unknown>)["num_extra_addresses"] ?? "0")) || 0;
       baseFee += numExtra * extraAddressFee;
     }
     return baseFee;
@@ -109,8 +110,8 @@ export function Applications({ applications, drafts = [], onPay, onRefresh, onRe
     if (!user) return;
     setProcessingId(app.id);
     try {
-      const isBuyer = (app as any).services?.name?.includes('Mauziano') && app.form_data.buyer_nida === user.nida_number;
-      const isTenant = (app as any).services?.name?.includes('PANGISHA') && app.form_data.tenant_nida === user.nida_number;
+      const isBuyer = (app as any).services?.name?.includes('Mauziano') && (app.form_data as Record<string, unknown>).buyer_nida as string | undefined === user.nida_number;
+      const isTenant = (app as any).services?.name?.includes('PANGISHA') && (app.form_data as Record<string, unknown>).tenant_nida as string | undefined === user.nida_number;
       const updateData: Record<string, unknown> = {};
       if (isBuyer) updateData.buyer_accepted = true;
       if (isTenant) updateData.tenant_accepted = true;
@@ -444,8 +445,8 @@ export function Applications({ applications, drafts = [], onPay, onRefresh, onRe
                       <p className="font-bold text-stone-900 text-lg">{draft.service_name}</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-stone-600">
-                      <div><span className="font-semibold">{lang === 'sw' ? 'Iliyoanzishwa:' : 'Started:'}</span> {new Date(draft.last_saved).toLocaleDateString()}</div>
-                      <div><span className="font-semibold">{lang === 'sw' ? 'Hatua ya Mwisho:' : 'Last Step:'}</span> {draft.current_step || 'draft'}</div>
+                      <div><span className="font-semibold">{lang === 'sw' ? 'Iliyoanzishwa:' : 'Started:'}</span> {(draft as unknown as Record<string,unknown>)["last_saved"] ? new Date(String((draft as unknown as Record<string,unknown>)["last_saved"])).toLocaleDateString() : "-"}</div>
+                      <div><span className="font-semibold">{lang === 'sw' ? 'Hatua ya Mwisho:' : 'Last Step:'}</span> {String((draft as unknown as Record<string, unknown>)["current_step"] ?? "draft")}</div>
                       <div><span className="font-semibold">{lang === 'sw' ? 'Sehemu Zilizojazwa:' : 'Progress:'}</span> {Object.values(draft.form_data || {}).filter((v: unknown) => !!v).length} {lang === 'sw' ? 'sehemu' : 'fields'}</div>
                     </div>
                   </div>

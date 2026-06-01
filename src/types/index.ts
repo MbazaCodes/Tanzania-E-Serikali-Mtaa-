@@ -38,7 +38,8 @@ export type ApplicationStatus =
   | 'approved'
   | 'issued'
   | 'returned'
-  | 'rejected';
+  | 'rejected'
+  | 'refunded';
 
 // ─── Payment ───────────────────────────────────────────────────────────────────
 
@@ -62,7 +63,8 @@ export interface FormFieldOption {
 
 export interface FormFieldShowIf {
   field: string;
-  value: string;
+  value?: string;
+  values?: string[];  // for multi-value showIf conditions
 }
 
 export interface FormField {
@@ -134,8 +136,11 @@ export interface AgreementFormData extends BaseFormData {
   second_party_citizen_id?: string;
 }
 
-/** Union of all possible form_data shapes */
-export type AnyFormData = UtambulishoFormData | AgreementFormData | BaseFormData;
+/** Union of all possible form_data shapes.
+ * Includes an index signature so service-specific fields (event_type, deceased_full_name,
+ * council, occupation, etc.) don't require explicit typing in every PDF component.
+ */
+export type AnyFormData = (UtambulishoFormData | AgreementFormData | BaseFormData) & Record<string, unknown>;
 
 // ─── Draft ─────────────────────────────────────────────────────────────────────
 
@@ -146,6 +151,8 @@ export interface ApplicationDraft {
   service_name: string;
   form_data: AnyFormData;
   saved_at: string;
+  last_saved?: string;   // timestamp of last auto-save
+  current_step?: number; // which form step was active when draft was saved
 }
 
 // ─── Staff signup data ─────────────────────────────────────────────────────────
